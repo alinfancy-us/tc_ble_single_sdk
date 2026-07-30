@@ -27,6 +27,13 @@
 #include "app.h"
 #include "app_att.h"
 
+/*
+ * 中文说明：本文件定义 ble_sample 示例的 GATT ATT 属性表（my_Attributes），包含 GAP/
+ * GATT/设备信息/HID/电量/OTA（可选）等服务与特征值、描述符、CCC 及其默认值，
+ * 并通过 my_att_init() 将该表注册给协议栈。本文件为约定式静态数据，与具体 MCU
+ * 平台无关。
+ */
+
 /**
  *  @brief  connect parameters structure for ATT
  */
@@ -429,6 +436,9 @@ static const attribute_t my_Attributes[] = {
  * @brief      Initialize the attribute table
  * @param[in]  none
  * @return     none
+ *
+ * 中文说明：将本文件定义的 my_Attributes ATT 属性表注册给 BLE 协议栈，
+ * 供 GATT 服务发现与读写访问使用。
  */
 void	my_att_init(void)
 {

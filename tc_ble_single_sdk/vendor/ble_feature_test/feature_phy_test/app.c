@@ -21,6 +21,13 @@
  *          limitations under the License.
  *
  *******************************************************************************************************/
+/*
+ * 中文说明：
+ * 本文件实现 BLE PHY 直接测试模式（Direct Test Mode, DTM）示例（feature_phy_test），
+ * 支持通过 2 线 UART、HCI over UART 两种方式与上位测试仪器/主机交互，用于射频性能（RF）认证测试。
+ * 主要包括：UART DMA 收发中断处理、HCI 数据收发回调、PHY 测试模式初始化。
+ * 测试模式下不支持低功耗挂起（suspend/deepsleep）。
+ */
 #include "tl_common.h"
 #include "drivers.h"
 #include "stack/ble/ble.h"
@@ -88,6 +95,8 @@ volatile u8 isUartTxDone = 1;
 	 * @brief		this function is used to process rx uart data.
 	 * @param[in]	none
 	 * @return      0 is ok
+	 * 中文说明：从 hci_rx_fifo 取出一帧 UART 接收数据，解析长度字段后转发给 blc_hci_handler 处理，
+	 * 处理完成后弹出该 fifo 项。
 	 */
 	int rx_from_uart_cb (void)
 	{
@@ -113,6 +122,8 @@ volatile u8 isUartTxDone = 1;
 	 * @brief		this function is used to process tx uart data.
 	 * @param[in]	none
 	 * @return      0 is ok
+	 * 中文说明：将 hci_tx_fifo 中待发送的数据拷贝到本地缓冲区并通过 UART DMA 发送，
+	 * 若上一次 UART 发送尚未完成则本次不发送（避免覆盖未完成的发送）。
 	 */
 	int tx_to_uart_cb (void)
 	{
@@ -141,6 +152,8 @@ volatile u8 isUartTxDone = 1;
  * @brief		this function is used to process uart irq
  * @param[in]	none
  * @return      none
+ * 中文说明：UART 收发 DMA 中断处理函数：收到数据时切换到下一个接收 fifo 缓冲区，
+ * 发送完成时清除中断标志并标记 UART 发送完成标志位。TC321X 与其他芯片寄存器/接口差异通过宏区分。
  */
 void app_phytest_irq_proc(void)
 {
@@ -184,6 +197,8 @@ void app_phytest_irq_proc(void)
  * @brief		user initialization when MCU wake_up from deepSleep_retention mode
  * @param[in]	none
  * @return      none
+ * 中文说明：MCU 从深度睡眠 retention 唤醒时的初始化入口（PHY 测试模式下默认不使能 retention，
+ * 此处仅作为预留分支）。
  */
 _attribute_ram_code_ void user_init_deepRetn(void)
 {
@@ -205,6 +220,9 @@ _attribute_ram_code_ void user_init_deepRetn(void)
  * @brief		user initialization when MCU power on or wake_up from deepSleep mode
  * @param[in]	none
  * @return      none
+ * 中文说明：上电/唤醒后的用户初始化入口：初始化随机数、Flash 参数、MAC 地址、RF 功率等级，
+ * 启用 PHY 直接测试模式（blc_phy_initPhyTest_module/blc_phy_setPhyTestEnable），并根据配置的 BLE_PHYTEST_MODE
+ * 初始化 UART 并注册对应的 HCI 收发回调；测试模式下禁止进入低功耗挂起。
  */
 void user_init_normal(void)
 {
@@ -277,6 +295,7 @@ void user_init_normal(void)
  * @brief     BLE main loop
  * @param[in]  none.
  * @return     none.
+ * 中文说明：BLE 主循环，仅驱动协议栈主循环，本测试工程不需要其他应用层处理。
  */
 void main_loop(void)
 {

@@ -21,6 +21,12 @@
  *          limitations under the License.
  *
  *******************************************************************************************************/
+/*
+ * 中文说明：
+ * 本文件定义 BLE GATT 属性表（Attribute Table），包含 GAP、GATT、设备信息服务、
+ * HID 服务、电量服务以及（可选的）OTA 服务的各个特征值/描述符定义，
+ * 构成完整的 GATT 数据库。该文件与芯片型号无关，B85/B87/TC321X 均适用。
+ */
 #include "tl_common.h"
 
 #include "stack/ble/ble.h"
@@ -429,6 +435,8 @@ static const attribute_t my_Attributes[] = {
  * @brief      Initialize the attribute table
  * @param[in]  none
  * @return     none
+ * 中文说明：将本文件中定义的 GATT 属性表 my_Attributes 注册给协议栈，
+ * 使其生效，供对端访问本机的 GATT 服务与特征值。
  */
 void	my_att_init(void)
 {

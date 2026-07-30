@@ -23,6 +23,14 @@
  *******************************************************************************************************/
 #pragma once
 
+/*
+ * 中文说明：
+ * 本文件是 ble_feature_test 工程的顶层配置分发头文件。
+ * 根据 feature_config.h 中定义的 FEATURE_TEST_MODE 宏，选择性地包含
+ * 对应特性子目录（如 feature_adv_power、feature_DLE_slave 等）下的
+ * app_config.h，从而将编译配置切换到某一个具体的测试特性工程。
+ * 本文件本身不包含任何芯片相关代码，为芯片无关的公共分发逻辑。
+ */
 
 #include "feature_config.h"
 

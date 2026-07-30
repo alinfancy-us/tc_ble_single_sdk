@@ -24,6 +24,14 @@
 #ifndef FEATURE_CONFIG_H_
 #define FEATURE_CONFIG_H_
 
+/*
+ * 中文说明：
+ * 本文件定义了 ble_feature_test 工程支持的所有测试特性编号（TEST_xxx 宏），
+ * 并通过 FEATURE_TEST_MODE 宏选择当前要编译的具体特性（例如 ADV 功耗测试、
+ * DLE 数据长度扩展测试、GATT 安全测试等）。app_config.h 会依据本文件中
+ * FEATURE_TEST_MODE 的取值，包含对应特性子目录下的配置文件。
+ * 本文件为芯片无关的公共宏定义文件，不涉及具体芯片分支。
+ */
 
 
 /////////////////// TEST FEATURE SELECTION /////////////////////////////////

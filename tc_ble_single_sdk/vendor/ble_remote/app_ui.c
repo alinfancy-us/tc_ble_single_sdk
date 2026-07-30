@@ -38,6 +38,10 @@
 #include "battery_check.h"
 #include "app_audio.h"
 
+/* 中文说明：本文件实现 BLE Remote 的用户界面逻辑：按键扫描与去抖、按键事件上报（HID 键盘/多媒体消费者
+ * 按键/红外学习触发等）、LED 指示（配对/OTA 状态）以及 UI 相关的上电/深度睡眠唤醒初始化。
+ */
+
 
 _attribute_data_retention_	u8 		key_type;
 _attribute_data_retention_	int 	key_not_released;

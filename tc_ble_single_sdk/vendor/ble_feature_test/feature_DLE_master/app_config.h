@@ -27,6 +27,11 @@
 
 #if (FEATURE_TEST_MODE == TEST_LL_DATA_LENGTH_EXTENSION_MASTER)
 
+/*
+ * 中文说明：本文件为 DLE 主机测试工程的编译配置，定义了最大 RX/TX 字节数、MTU
+ * 尺寸、是否启用主机 SMP、调试日志开关、测试板卡选型以及 UI/系统时钟等。
+ */
+
 ///////////////////////// Feature Configuration////////////////////////////////////////////////
 #define BLE_HOST_SMP_ENABLE				                1 //Master SMP strongly recommended enabled
 

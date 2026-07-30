@@ -24,6 +24,11 @@
 #ifndef APP_H_
 #define APP_H_
 
+/*
+ * 中文说明：本头文件对应 feature_ll_state/app.c，声明了应用层三个入口函数：
+ * 正常上电/唤醒初始化、DeepSleep Retention 唤醒初始化以及 BLE 主循环。
+ */
+
 #include "../feature_config.h"
 
 #if (FEATURE_TEST_MODE == TEST_ADVERTISING_ONLY || FEATURE_TEST_MODE == TEST_SCANNING_ONLY || FEATURE_TEST_MODE == TEST_ADVERTISING_IN_CONN_SLAVE_ROLE || \

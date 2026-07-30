@@ -29,6 +29,10 @@
 
 #if (REMOTE_IR_LEARN_ENABLE)
 
+/* 中文说明：本文件实现红外学习（IR Learn）功能：通过 GPIO 输入捕获外部遥控器的红外载波频率与
+ * 高/低电平时序，经状态机处理后存储为可重放的数据，并可通过 rc_ir 的 PWM/DMA 机制原样转发。
+ * 仅当宏 REMOTE_IR_LEARN_ENABLE 开启时编译生效，与芯片型号无关。
+ */
 
 ir_learn_ctrl_t	ir_learn_ctrl;
 ir_learn_ctrl_t *g_ir_learn_ctrl = &ir_learn_ctrl;

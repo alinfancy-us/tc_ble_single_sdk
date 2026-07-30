@@ -21,6 +21,12 @@
  *          limitations under the License.
  *
  *******************************************************************************************************/
+/*
+ * 中文说明：
+ * 本文件声明了 BLE Remote 音频（语音遥控）相关的对外接口，包括麦克风 GPIO 初始化、麦克风开关、
+ * 语音按键状态处理、音频编码任务、连接参数更新请求及音频状态检测等，具体实现依据 TL_AUDIO_MODE
+ * 配置的音频传输模式（GATT/HID、ADPCM/SBC 等）有所不同，详见 app_audio.c。
+ */
 #ifndef APP_AUDIO_H_
 #define APP_AUDIO_H_
 
@@ -38,6 +44,7 @@ extern	int     			ui_mtu_size_exchange_req;
  * @param[in]  none
  * @return     none
  */
+/* 中文说明：初始化数字麦克风（DMIC）相关 GPIO。 */
 void dmic_gpio_reset (void);
 
 /**
@@ -45,6 +52,7 @@ void dmic_gpio_reset (void);
  * @param[in]  none
  * @return     none
  */
+/* 中文说明：初始化模拟麦克风（AMIC）相关 GPIO，将其恢复为默认（关闭）状态。 */
 void amic_gpio_reset (void);
 
 /**
@@ -52,6 +60,7 @@ void amic_gpio_reset (void);
  * @param[in]  en   0:close the micphone  1:open the micphone
  * @return     none
  */
+/* 中文说明：打开或关闭麦克风采集，并按需触发 MTU 尺寸交换；B85 下走 audio_amic_init 初始化流程。 */
 void ui_enable_mic (int en);
 
 /**
@@ -59,6 +68,7 @@ void ui_enable_mic (int en);
  * @param[in]  none
  * @return     none
  */
+/* 中文说明：语音按键触发后打开麦克风，并按需发起 MTU 尺寸交换请求（仅 TL_AUDIO_RCU_ADPCM_GATT_TLEINK 模式）。 */
 void voice_press_proc(void);
 
 /**
@@ -66,6 +76,8 @@ void voice_press_proc(void);
  * @param[in]  none
  * @return     none
  */
+/* 中文说明：音频编码与发送任务，在主循环中周期性调用，将麦克风采集数据编码后通过 GATT Notify 或
+ * HID 上报发送给主机。 */
 void task_audio (void);
 
 /**
@@ -73,6 +85,7 @@ void task_audio (void);
  * @param[in]  none
  * @return     none
  */
+/* 中文说明：语音传输场景下检测并在合适时机发起连接参数更新请求，以获得更短的连接间隔。 */
 void blc_checkConnParamUpdate(void);
 
 /**
@@ -80,6 +93,7 @@ void blc_checkConnParamUpdate(void);
  * @param[in]  none
  * @return     none
  */
+/* 中文说明：主循环中的音频状态机处理入口，根据麦克风使能状态与超时情况调度 task_audio()。 */
 void proc_audio(void);
 
 /**
@@ -87,6 +101,7 @@ void proc_audio(void);
  * @param[in]  p:data pointer.
  * @return     0
  */
+/* 中文说明：处理主机（Server）下发的音频控制命令（开启/关闭），仅在 HID Service Channel 音频模式下使用。 */
 int server2client_auido_proc(void* p);
 
 /**
@@ -94,6 +109,7 @@ int server2client_auido_proc(void* p);
  * @param[in]  none
  * @return     none
  */
+/* 中文说明：周期性检查音频开始/结束通知是否发送成功，发送失败则重试。 */
 void audio_state_check(void);
 
 /**
@@ -101,6 +117,7 @@ void audio_state_check(void);
  * @param[in]  none
  * @return     none
  */
+/* 中文说明：语音键按下时的处理，根据不同音频模式记录按键时间或直接开始/切换语音采集状态。 */
 void key_voice_is_press(void);
 
 /**
@@ -108,6 +125,7 @@ void key_voice_is_press(void);
  * @param[in]  none
  * @return     none
  */
+/* 中文说明：语音键释放时的处理，根据不同音频模式关闭麦克风或发送语音结束通知。 */
 void key_voice_is_release(void);
 
 /**
@@ -115,6 +133,7 @@ void key_voice_is_release(void);
  * @param[in]  delay_time: microphone delay duration, unit is us.
  * @return     none
  */
+/* 中文说明：设置麦克风采集数据的延迟清零时间，用于滤除开启麦克风瞬间的噪声数据。 */
 void audio_proc_delay(u32 delay_time_us);
 
 #endif /* APP_AUDIO_H_ */

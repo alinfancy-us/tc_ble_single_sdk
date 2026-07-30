@@ -21,6 +21,12 @@
  *          limitations under the License.
  *
  *******************************************************************************************************/
+/*
+ * 中文说明：
+ * 本文件定义了 ble_module 示例工程的 GATT 属性表(GAP/GATT/设备信息/SPP、可选 OTA 服务)
+ * 及其初始化函数 my_att_init，并实现了 SPP "手机->模块" 数据写入的回调处理。
+ * 该属性表内容与具体芯片平台无关。
+ */
 #include "tl_common.h"
 #include "drivers.h"
 #include "stack/ble/ble.h"
@@ -174,6 +180,10 @@ static const u8 my_OtaCharVal[19] = {
  * @brief      write callback of Attribute of TelinkSppDataClient2ServerUUID
  * @param[in]  para - rf_packet_att_write_t
  * @return     0
+ *
+ * 中文说明：SPP "手机->模块"特征值写回调。当收到的数据长度大于 0 时，将原始 ATT Write 包
+ * (含 opcode 及数据)封装进 spp_event_t 结构，并通过 spp_send_data 上报给 MCU 侧串口，
+ * 事件 ID 固定为 0x07a0(数据接收事件)。
  */
 int module_onReceiveData(void *para)
 {
@@ -248,6 +258,8 @@ static const attribute_t my_Attributes[] = {
  * @brief      Initialize the attribute table
  * @param[in]  none
  * @return     none
+ *
+ * 中文说明：GATT 属性表初始化函数：将 my_Attributes 属性表注册给协议栈，并设置默认设备名称(MY_DEV_NAME)。
  */
 void	my_att_init(void)
 {

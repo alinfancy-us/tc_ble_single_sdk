@@ -28,6 +28,13 @@
 #include "app_att.h"
 #include "../common/blt_led.h"
 
+/*
+ * 中文说明：
+ * 本文件实现 BLE PHY 测试（PHY Test）相关功能，仅在 BLE_PHYTEST_MODE 不为 PHYTEST_MODE_DISABLE
+ * （默认禁用）时编译。包括通过 UART/HCI 接收发送测试命令的回调、PHY 测试中断处理，以及
+ * 触发进入 PHY 测试模式与初始化 UART/PHY 测试模块的接口。B85/B87 与 TC321X 在寄存器接口上有
+ * 差异，由内部 MCU_CORE_TYPE 分支处理。
+ */
 #if (BLE_PHYTEST_MODE != PHYTEST_MODE_DISABLE )
 /*----------------------------------------------*
  *	HCI TX FIFO  = 2 Bytes LEN + n Bytes Data.	*
@@ -84,6 +91,7 @@ volatile u8 isUartTxDone = 1;
  * @param[in]	none
  * @return      0 is ok
  */
+	/* 中文说明：从 UART 接收 FIFO 取出一帧数据，交给 blc_hci_handler 处理后弹出该帧。 */
 	int rx_from_uart_cb (void)
 	{
 		if(my_fifo_get(&hci_rx_fifo) == 0)
@@ -112,6 +120,7 @@ volatile u8 isUartTxDone = 1;
 	 * @param[in]	none
 	 * @return      0 is ok
 	 */
+	/* 中文说明：将待发送 FIFO 中的一帧数据通过 DMA 方式从 UART 发送出去。 */
 	int tx_to_uart_cb (void)
 	{
 		uart_data_t T_txdata_buf;
@@ -138,6 +147,8 @@ volatile u8 isUartTxDone = 1;
 _attribute_ram_code_ void irq_phyTest_handler(void)
 {
 #if(FEATURE_TEST_MODE == TEST_BLE_PHY)
+/* 中文说明：PHY 测试中断处理：依次处理 UART 接收 DMA、发送 DMA 以及发送完成中断，
+ * B85/B87 与 TC321X 在 DMA 中断状态寄存器访问方式上不同，由 MCU_CORE_TYPE 分支处理。 */
 #if(MCU_CORE_TYPE != MCU_CORE_TC321X)
 	if(dma_chn_irq_status_get() & FLD_DMA_CHN_UART_RX)
 #elif(MCU_CORE_TYPE == MCU_CORE_TC321X)
@@ -177,6 +188,7 @@ _attribute_ram_code_ void irq_phyTest_handler(void)
 
 extern const led_cfg_t led_cfg[];
 
+/* 中文说明：非连接状态下触发进入 PHY 测试模式，切换 LED 指示并调整 RF 发射强度寄存器以满足 BQB 认证要求。 */
 void app_trigger_phytest_mode(void)
 {
 	static u8 phyTestFlag = 0;
@@ -197,6 +209,7 @@ void app_trigger_phytest_mode(void)
 
 
 
+/* 中文说明：初始化 PHY 测试模块与 UART（用于接收 HCI 命令或两线 UART 直接测试），并注册对应的 HCI 收发回调。 */
 void app_phytest_init(void)
 {
 	blc_phy_initPhyTest_module();

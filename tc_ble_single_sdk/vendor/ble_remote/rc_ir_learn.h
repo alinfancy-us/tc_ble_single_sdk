@@ -21,6 +21,11 @@
  *          limitations under the License.
  *
  *******************************************************************************************************/
+/*
+ * 中文说明：
+ * 本文件声明了红外学习（IR Learn）功能相关的 GPIO 定义、频率范围与超时等参数配置、状态机枚举
+ * 及控制/发送数据结构，用于学习外部红外遥控器的载波与时序并原样转发。
+ */
 #ifndef RC_IR_LEARN_H_
 #define RC_IR_LEARN_H_
 
@@ -157,6 +162,7 @@ typedef struct{
  * @param[in]  none
  * @return     none
  */
+/* 中文说明：开始一次红外学习，清空学习状态并使能相应的学习中断/硬件模块，进入等待按键状态。 */
 void ir_learn_start(void);
 
 /**
@@ -164,6 +170,7 @@ void ir_learn_start(void);
  * @param[in]  none
  * @return     none
  */
+/* 中文说明：停止红外学习，关闭对应的学习中断/硬件模块。 */
 void ir_learn_stop(void);
 
 /**
@@ -171,6 +178,7 @@ void ir_learn_stop(void);
  * @param[in]  send_buffer -
  * @return     none
  */
+/* 中文说明：将学习到的载波周期与波形时序数据从内部控制结构体拷贝到发送用缓冲区，供后续 ir_learn_send 使用。 */
 void ir_learn_copy_result(ir_learn_send_t* send_buffer);
 
 /**
@@ -178,6 +186,7 @@ void ir_learn_copy_result(ir_learn_send_t* send_buffer);
  * @param[in]  none
  * @return     none
  */
+/* 中文说明：红外学习中断处理函数，在 IRQ 中记录相邻边沿的时间间隔，用于识别载波与非载波区间。 */
 void ir_learn_irq_handler(void);
 
 /**
@@ -185,6 +194,7 @@ void ir_learn_irq_handler(void);
  * @param[in]  send_buffer -
  * @return     none
  */
+/* 中文说明：将学习到的波形序列还原为 PWM 载波配置并通过 DMA 发送，实现红外码的原样转发。 */
 void ir_learn_send(ir_learn_send_t* send_buffer);
 
 /**
@@ -192,6 +202,7 @@ void ir_learn_send(ir_learn_send_t* send_buffer);
  * @param[in]  none
  * @return     none
  */
+/* 中文说明：红外学习发送前的初始化，配置 PWM 时钟、DMA 地址等发送相关硬件参数。 */
 void ir_learn_send_init(void);
 
 /**
@@ -199,6 +210,7 @@ void ir_learn_send_init(void);
  * @param[in]  none
  * @return     none
  */
+/* 中文说明：需在主循环中周期调用，检测学习超时及采样结束条件，并根据采集到的波形数量判定学习成功或失败。 */
 void ir_learn_detect(void);
 
 /**
@@ -206,6 +218,7 @@ void ir_learn_detect(void);
  * @param[in]  none
  * @return     none
  */
+/* 中文说明：红外学习功能初始化，配置学习相关 GPIO（B85/B87）或专用学习硬件模块（TC321X）及中断。 */
 void ir_learn_init(void);
 
 /**
@@ -213,6 +226,7 @@ void ir_learn_init(void);
  * @param[in]  none
  * @return     none
  */
+/* 中文说明：查询当前红外学习状态：0-学习成功，1-学习中/未启用，其余值为具体失败原因（见 ir_learn_states 枚举）。 */
 unsigned char get_ir_learn_state(void);
 
 #endif /* RC_IR_LEARN_H_ */

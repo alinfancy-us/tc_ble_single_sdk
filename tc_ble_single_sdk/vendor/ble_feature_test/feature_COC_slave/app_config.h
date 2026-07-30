@@ -27,6 +27,12 @@
 
 #if (FEATURE_TEST_MODE == TEST_L2CAP_COC)
 
+/*
+ * 中文说明：本文件为 L2CAP CoC 从机测试工程的编译配置，定义了 CoC 连接数/通道数/MTU、
+ * 调试日志开关、测试板卡选型（根据 __PROJECT_8258/8278/TC321X_FEATURE_TEST__ 区分）
+ * 以及 UI/系统时钟等基础参数。
+ */
+
 ///////////////////////// Feature Configuration////////////////////////////////////////////////
 #define APP_DEFAULT_HID_BATTERY_OTA_ATTRIBUTE_TABLE		1
 

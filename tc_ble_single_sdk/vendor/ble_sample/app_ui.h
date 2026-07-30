@@ -26,11 +26,18 @@
 
 #include "app_config.h"
 
+/*
+ * 中文说明：本文件声明 ble_sample 示例中 OTA/键盘/按钮 UI 处理相关的对外接口，
+ * 具体实现见 app_ui.c，各接口根据 app_config.h 中的功能开关条件编译。
+ */
+
 #if (BLE_OTA_SERVER_ENABLE)
 /**
  * @brief      this function is used to register the function for OTA start.
  * @param[in]  none
  * @return     none
+ *
+ * 中文：OTA 启动回调声明（实现见 app_ui.c）。
  */
 void app_enter_ota_mode(void);
 
@@ -39,6 +46,8 @@ void app_enter_ota_mode(void);
  * @brief      this function is used to register the function for OTA end.
  * @param[in]  result - OTA result
  * @return     none
+ *
+ * 中文：OTA 结束回调声明（实现见 app_ui.c）。
  */
 void app_ota_end_result(int result);
 #endif
@@ -53,6 +62,8 @@ extern int 	key_not_released;
  * @param[in]  p - data pointer of event
  * @param[in]  n - data length of event
  * @return     none
+ *
+ * 中文：键盘按键检测声明（实现见 app_ui.c）。
  */
 void proc_keyboard(u8 e, u8 *p, int n);
 
@@ -73,6 +84,8 @@ extern int button_not_released;
  * @param[in]	p - event callback data pointer for when this function is triggered by LinkLayer event
  * @param[in]	n - event callback data length when this function is triggered by LinkLayer event
  * @return      none
+ *
+ * 中文：按钮按下/释放检测声明（实现见 app_ui.c）。
  */
 void proc_button(u8 e, u8 *p, int n);
 

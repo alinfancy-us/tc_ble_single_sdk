@@ -24,6 +24,10 @@
 #ifndef APP_HOST_H_
 #define APP_HOST_H_
 
+/* 中文说明：本头文件声明 Master 角色 Host 层（GAP/L2CAP/SMP）回调与连接参数更新处理接口，
+ * 配合 blm_host.c 实现掃描/连接/配对/参数协商等主机业务逻辑。
+ */
+
 
 /**
  * @brief      callback function of HCI Controller Event

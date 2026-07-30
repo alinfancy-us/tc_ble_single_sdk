@@ -28,6 +28,10 @@
 
 #if (FEATURE_TEST_MODE == TEST_MD_MASTER)
 
+/*
+ * 中文说明：本头文件对应 feature_md_master/app.c，声明了用户初始化、主循环与
+ * 主空闲循环三个入口函数。
+ */
 
 /**
  * @brief		user initialization

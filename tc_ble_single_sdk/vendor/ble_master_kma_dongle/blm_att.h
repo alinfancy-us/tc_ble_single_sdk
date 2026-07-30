@@ -24,6 +24,10 @@
 #ifndef BLM_ATT_H_
 #define BLM_ATT_H_
 
+/* 中文说明：本头文件声明 Master 侧 ATT 数据处理接口，包括键盘、多媒体消费者按键、
+ * 鼠标报告的接收处理、Host 层缓存数据清除以及 Google Voice 服务发现回调。
+ */
+
 
 
 /**

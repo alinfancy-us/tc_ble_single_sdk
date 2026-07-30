@@ -21,6 +21,14 @@
  *          limitations under the License.
  *
  *******************************************************************************************************/
+/*******************************************************************************************************
+ * 中文说明：
+ * 本文件是 ble_slave_2_4g 工程的入口文件，包含芯片上电复位后的初始化流程（时钟、GPIO、RF、看门狗等）
+ * 以及主循环 main()。当工程同时使能了 2.4G 私有协议测试模式（TEST_2P4G_MODE）时，本文件的中断处理函数
+ * 会根据 irq_bleModeFlag 在 BLE 协议栈中断处理与 2.4G 并发（concurrent）中断处理之间进行切换。
+ * 本文件中的芯片相关分支（cpu_wakeup_init/debug_config 等）已按 MCU_CORE_TYPE 区分 B85/B87/TC321X，
+ * 本次仅关注 B85 (MCU_CORE_825x) 分支及无芯片区分的公共逻辑。
+ *******************************************************************************************************/
 #include "tl_common.h"
 #include "drivers.h"
 #include "stack/ble/ble.h"
@@ -33,6 +41,9 @@ volatile unsigned char irq_bleModeFlag = 1;
  * @brief   IRQ handler
  * @param   none.
  * @return  none.
+ */
+/* 中文说明：系统中断入口。当使能了 2.4G 测试模式且当前处于 2.4G 私有协议模式（irq_bleModeFlag==0）时，
+ * 转去调用 2.4G 并发中断处理函数；否则（包括 BLE 模式）调用 BLE 协议栈自带的中断处理函数。
  */
 _attribute_ram_code_ void irq_handler(void)
 {
@@ -62,6 +73,9 @@ _attribute_ram_code_ void irq_handler(void)
  * @param[in]   none
  * @return      none
  */
+/* 中文说明：内部 RF 调试专用，将若干 GPIO 复用为调试信号输出（TX/RX 使能、数据、时钟等），
+ * 便于用逻辑分析仪观测收发时序。B85 分支通过寄存器 0x5a8/0x586/0x5b6 配置调试 IO，与 TC321X 分支互不影响。
+ */
 void debug_config(void)
 {
 #if(MCU_CORE_TYPE == MCU_CORE_TC321X)
@@ -88,6 +102,10 @@ void debug_config(void)
  * @brief		This is main function
  * @param[in]	none
  * @return      none
+ */
+/* 中文说明：程序主入口，运行在 RAM code 中。依次完成：CPU 唤醒初始化、TC321X 看门狗停止（仅该芯片）、
+ * 判断是否为深度休眠保持(deep retention)唤醒、RF/GPIO/时钟初始化、可选看门狗启动、用户初始化
+ * (user_init_normal)、调试 IO 配置、开中断，最后进入 while(1) 主循环反复调用 main_loop()。
  */
 _attribute_ram_code_ int main (void)    //must run in ramcode
 {

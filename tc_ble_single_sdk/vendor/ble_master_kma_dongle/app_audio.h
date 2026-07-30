@@ -24,6 +24,11 @@
 #ifndef APP_AUDIO_H_
 #define APP_AUDIO_H_
 
+/* 中文说明：本头文件声明音频（麦克风）数据接收与转发相关接口，用于将从 BLE 从机（如遥控器）
+ * 通过 ATT 上报的 mic 音频数据缓存、组包，并通过 USB HID 上报给主机 PC；同时声明 USB 端点
+ * 中断处理入口。
+ */
+
 /**
  * @brief		usb_endpoints_irq_handler
  * @param[in]	none

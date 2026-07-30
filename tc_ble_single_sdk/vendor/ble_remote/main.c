@@ -21,6 +21,12 @@
  *          limitations under the License.
  *
  *******************************************************************************************************/
+/*
+ * 中文说明：
+ * 本文件是 BLE Remote 工程的程序入口，完成时钟/电源管理模块初始化、固件完整性检查、根据唤醒
+ * 类型调用正常/retention 初始化入口，并在 while(1) 中循环调用 main_loop()。irq_handler 中
+ * 根据功能开关分发红外发射/学习、BLE 协议栈及 PHY 测试中断。
+ */
 #include "tl_common.h"
 #include "drivers.h"
 #include "rc_ir_learn.h"
@@ -39,6 +45,8 @@ extern void rc_ir_irq_prc(void);
  * @param   none.
  * @return  none.
  */
+/* 中文说明：系统中断入口，按顺序分发给红外发射中断、红外学习中断（仅在对应功能使能时编译），
+ * 然后调用 BLE 协议栈统一中断处理入口 irq_blt_sdk_handler()，最后若开启 PHY 测试则处理 PHY 测试中断。 */
 _attribute_ram_code_ void irq_handler(void)
 {
 #if (REMOTE_IR_ENABLE)
@@ -65,6 +73,9 @@ _attribute_ram_code_ void irq_handler(void)
  * @param[in]	none
  * @return      none
  */
+/* 中文说明：程序入口：依次完成时钟源选择、CPU 唤醒初始化（B85/B87/TC321X 分支处理不同）、RF 初始化、
+ * GPIO/时钟初始化、可选的固件 CRC 校验与看门狗，然后根据是否为 deep retention 唤醒选择调用
+ * user_init_deepRetn() 或 user_init_normal()，最后开中断并进入主循环反复调用 main_loop()。 */
 _attribute_ram_code_ int main (void)    //must run in ramcode
 {
 

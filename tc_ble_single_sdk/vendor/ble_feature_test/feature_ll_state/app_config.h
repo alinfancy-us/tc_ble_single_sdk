@@ -23,6 +23,11 @@
  *******************************************************************************************************/
 #pragma once
 
+/*
+ * 中文说明：本文件为 feature_ll_state 示例的编译时配置，包括低功耗使能、调试日志
+ * 开关、开发板选型以及系统时钟频率等，不包含实际业务逻辑。
+ */
+
 #include "../feature_config.h"
 
 #if (FEATURE_TEST_MODE == TEST_ADVERTISING_ONLY || FEATURE_TEST_MODE == TEST_SCANNING_ONLY || FEATURE_TEST_MODE == TEST_ADVERTISING_IN_CONN_SLAVE_ROLE || \

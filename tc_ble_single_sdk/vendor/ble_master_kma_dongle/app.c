@@ -21,6 +21,14 @@
  *          limitations under the License.
  *
  *******************************************************************************************************/
+/*
+ * 中文说明：
+ * 本文件是 BLE Master KMA Dongle（HID/音频转发主机）应用主文件。
+ * 主要负责：BLE Master 协议栈初始化（Controller/Host）、Flash 保护、
+ * USB（键盘/鼠标/音频）相关寄存器初始化，以及主循环调度（扫描、配对/解配对、
+ * OTA、按键检测、音频处理等）。B85(MCU_CORE_825x) 与 B87(MCU_CORE_827x)
+ * 共用本文件逻辑，仅在 main.c 的 cpu_wakeup_init 调用上有芯片差异。
+ */
 #include "tl_common.h"
 #include "drivers.h"
 #include "stack/ble/ble.h"
@@ -63,6 +71,8 @@ MYFIFO_INIT(blt_txfifo, 40, 8);
  * 			   e.g. if we write flash sector from 0x10000 to 0x20000, actual operating flash address is 0x10000 ~ 0x1FFFF
  * 			   		but we use [0x10000, 0x20000):  op_addr_begin = 0x10000, op_addr_end = 0x20000
  * @return     none
+ * 中文：Flash 保护处理函数，收到应用初始化事件时完成 Flash 保护模块初始化并锁定固件区域；
+ * 芯片无关逻辑，如需支持更多 Flash 读写/擦除场景需自行补充对应分支。
  */
 _attribute_data_retention_ u16  flash_lockBlock_cmd = 0;
 void app_flash_protection_operation(u8 flash_op_evt, u32 op_addr_begin, u32 op_addr_end)
@@ -75,7 +85,7 @@ void app_flash_protection_operation(u8 flash_op_evt, u32 op_addr_begin, u32 op_a
 
 		/* just sample code here, protect all flash area for firmware, do not protect system data area.
 		 * user can change this design if have other consideration */
-		u32  app_lockBlock = app_lockBlock = FLASH_LOCK_FW_LOW_256K; //just demo value, user can change this value according to application
+		u32  app_lockBlock = FLASH_LOCK_FW_LOW_256K; //just demo value, user can change this value according to application
 
 		flash_lockBlock_cmd = flash_change_app_lock_block_to_flash_lock_block(app_lockBlock);
 
@@ -98,6 +108,8 @@ void app_flash_protection_operation(u8 flash_op_evt, u32 op_addr_begin, u32 op_a
  * @param[in]  para - data pointer of event
  * @param[in]  n - data length of event
  * @return     0
+ * 中文：Host 层事件回调函数，目前仅处理 SMP 配对失败事件（清除 central_smp_pending 标志），
+ * 其余事件透传忽略。
  */
 int app_host_event_callback (u32 h, u8 *para, int n)
 {
@@ -120,6 +132,9 @@ int app_host_event_callback (u32 h, u8 *para, int n)
  * @brief		user initialization
  * @param[in]	none
  * @return      none
+ * 中文：用户初始化入口。完成随机数发生器、调试口、Flash 保护、USB 寄存器、
+ * BLE Controller/Host（Master 角色）协议栈初始化，注册相关回调，
+ * 并配置扫描参数、开启扫描，最后检查协议栈初始化是否出错。
  */
 void user_init(void)
 {
@@ -255,6 +270,9 @@ void user_init(void)
  * @brief		host pair or upair proc in main loop
  * @param[in]	none
  * @return      none
+ * 中文：在主循环中处理配对与解配对流程。当 central_unpair_enable 置位时，
+ * 若当前处于连接态则发起断连并清除绑定信息（根据配置调用 stack 层或用户自定义
+ * 配对表接口删除对端 mac），断连完成后清除内部状态标志。
  */
 _attribute_ram_code_
 void host_pair_unpair_proc(void)
@@ -294,6 +312,9 @@ void host_pair_unpair_proc(void)
  * @brief     BLE main idle loop
  * @param[in]  none.
  * @return     none.
+ * 中文：BLE 主空闲循环。依次驱动协议栈主循环、处理 USB 中断命令、按键检测、
+ * 音频处理（USB 音频保活）、配对/解配对流程、OTA 流程（如使能）以及连接参数
+ * 更新请求处理。
  */
 int main_idle_loop (void)
 {
@@ -364,6 +385,8 @@ int main_idle_loop (void)
  * @brief     BLE main loop
  * @param[in]  none.
  * @return     none.
+ * 中文：BLE 主循环入口，调用 main_idle_loop 处理各类事务，若使能简单服务发现
+ * （ACL_CENTRAL_SIMPLE_SDP_ENABLE）则同时驱动 SDP 循环。
  */
 void main_loop(void)
 {

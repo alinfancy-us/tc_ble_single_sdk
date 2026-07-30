@@ -28,6 +28,11 @@
 
 #if (FEATURE_TEST_MODE == TEST_L2CAP_COC)
 
+/*
+ * 中文说明：本头文件声明 L2CAP CoC 从机测试工程的应用层接口，包括用户初始化、
+ * 主循环以及 CoC 通道的初始化/建连/断连/收发数据等接口。
+ */
+
 
 /**
  * @brief		user initialization when MCU power on or wake_up from deepSleep mode

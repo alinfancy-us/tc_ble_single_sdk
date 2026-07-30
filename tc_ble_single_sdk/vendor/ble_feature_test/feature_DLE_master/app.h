@@ -28,6 +28,10 @@
 
 #if (FEATURE_TEST_MODE == TEST_LL_DATA_LENGTH_EXTENSION_MASTER)
 
+/*
+ * 中文说明：本头文件声明 DLE 主机测试工程的用户初始化与主循环接口。
+ */
+
 
 /**
  * @brief		user initialization

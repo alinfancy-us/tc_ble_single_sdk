@@ -25,6 +25,14 @@
 
 #if (FEATURE_TEST_MODE == TEST_MD_MASTER)
 
+/*
+ * 模块说明（中文）：
+ * 本文件实现 feature_md_master 示例中 BLE 主机端的 Host 层逻辑：处理 HCI 事件
+ * （ADV 上报、连接建立/断开、加密变化、连接参数更新）以及 L2CAP 层数据
+ * （ATT MTU 交换、通知/确认、连接参数更新请求、SMP），并实现自动/手动触发配对的
+ * 扫描报告过滤与发起连接逻辑。
+ */
+
 #include "tl_common.h"
 #include "drivers.h"
 #include "stack/ble/ble.h"
@@ -79,6 +87,7 @@ static u8 seq_num_next = 0;
  * @brief      callback function of smp finish
  * @param[in]  none
  * @return     0
+ * 中文说明：SMP 配对完成回调，清除 SMP 待处理标志。
  */
 int app_host_smp_finish (void)  //smp finish callback
 {
@@ -96,6 +105,10 @@ int app_host_smp_finish (void)  //smp finish callback
  *     		   after controller is set to scan state, it will report all the ADV packet it received by this event
  * @param[in]  p - data pointer of event
  * @return     0
+ * 中文说明：处理扫描到的 ADV 报开事件。若已使能 SMP 且上一连接尚未完成配对，
+ * 则拒绝发起新连接；否则根据绑定列表自动匹配或按键触发（RSSI 阈值限制近距离）
+ * 判断是否发起连接。注意函数内局部 master_auto_connect/user_manual_pairing 与
+ * 文件顶部同名全局变量同名（局部变量遵蔽全局，全局变量未被使用）。
  */
 int blm_le_adv_report_event_handle(u8 *p)
 {
@@ -153,6 +166,9 @@ int blm_le_adv_report_event_handle(u8 *p)
  *              connection establish event to host(HCI_SUB_EVT_LE_CONNECTION_ESTABLISH)
  * @param[in]	p - data pointer of event
  * @return      none
+ * 中文说明：连接建立（telink 私有）事件处理。状态成功时点亮 LED（若使能）、
+ * 记录连接句柄与对端地址，若使能 SMP 则标记待配对，并刷新序号、测试数据及
+ * 连接时间戳。
  */
 int blm_le_connection_establish_event_handle(u8 *p)
 {
@@ -200,6 +216,9 @@ int blm_le_connection_establish_event_handle(u8 *p)
  * @brief		this function serves to connect terminate
  * @param[in]	p - data pointer of event
  * @return      none
+ * 中文说明：连接断开事件处理。根据断开原因分支（仅分类），恢复 LED 状态、
+ * 清除连接句柄/SMP 待处理标志/连接参数更新请求、重置 MTU 为默认 23 字节，
+ * 并重新开启扫描以等待下一个从机 ADV 包。
  */
 int 	blm_disconnect_event_handle(u8 *p)
 {
@@ -278,6 +297,7 @@ int 	blm_disconnect_event_handle(u8 *p)
  * @brief      call this function when  HCI Controller Event :HCI_SUB_EVT_LE_CONNECTION_UPDATE_COMPLETE
  * @param[in]  p - data pointer of event
  * @return     0
+ * 中文说明：连接参数更新完成事件处理（当前为空实现，仅作预留扩展点）。
  */
 int blm_le_conn_update_event_proc(u8 *p)
 {
@@ -298,6 +318,9 @@ int blm_le_conn_update_event_proc(u8 *p)
  * @param[in]  p - data pointer of event
  * @param[in]  n - data length of event
  * @return     0
+ * 中文说明：HCI 控制器事件总入口，根据事件类型分发到断开、加密变化/密钥刷新（若
+ * 使能 SMP）、LE Meta 事件（连接完成、连接建立、ADV 上报、连接参数/PHY 更新）
+ * 的具体处理函数。
  */
 int controller_event_callback (u32 h, u8 *p, int n)
 {
@@ -392,6 +415,10 @@ volatile int app_l2cap_handle_cnt = 0;
  * @param[in]  conn_handle - connect handle
  * @param[in]  raw_pkt - Pointer point to l2cap data packet
  * @return     0
+ * 中文说明：L2CAP 数据包处理入口。先拼接完整 L2CAP 包，再根据通道 ID 分发处理：
+ * ATT（MTU 交换、读响应、通知/指示，其中通知数据按序号校验并回写测试数据，序号
+ * 异常时进入死循环以便调试定位）、Signal（连接参数更新请求合法性检查后回复
+ * 接受/拒绝）以及 SMP（若使能）。
  */
 int app_l2cap_handler (u16 conn_handle, u8 *raw_pkt)
 {

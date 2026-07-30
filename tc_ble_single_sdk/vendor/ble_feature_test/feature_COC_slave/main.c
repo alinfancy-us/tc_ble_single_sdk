@@ -30,6 +30,12 @@
 
 #if (FEATURE_TEST_MODE == TEST_L2CAP_COC)
 
+/*
+ * 中文说明：本文件为 L2CAP CoC 测试工程的程序入口，包含中断入口与 main() 函数，
+ * 完成时钟/电源管理、MCU 唤醒初始化、GPIO/时钟初始化，并根据是否为
+ * deepRetention 唤醒分别调用 user_init_normal/user_init_deepRetn，最后进入主循环。
+ */
+
 /**
  * @brief   IRQ handler
  * @param   none.

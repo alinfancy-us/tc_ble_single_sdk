@@ -26,11 +26,21 @@
 #include "stack/ble/ble.h"
 #include "app.h"
 
+/*
+ * 中文说明：本文件为 ble_sample 工程的程序入口，包含中断处理函数与 main()。main()
+ * 依次完成时钟/系统基础硬件初始化，判断是否为 deepSleep retention 唤醒并调用
+ * 对应的应用初始化函数，最后进入主循环。其中不同 MCU_CORE_TYPE（B85/B87/
+ * TC321X）的时钟与看门狗初始化分支仅 B85（MCU_CORE_825x）分支作了注释补充，
+ * B87/TC321X 分支未作任何修改。
+ */
+
 
 /**
  * @brief   IRQ handler
  * @param   none.
  * @return  none.
+ *
+ * 中文说明：系统中断入口，转发给 BLE 协议栈的中断处理函数 irq_blt_sdk_handler()。
  */
 _attribute_ram_code_ void irq_handler(void)
 {

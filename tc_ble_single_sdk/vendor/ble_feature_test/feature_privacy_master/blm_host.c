@@ -21,6 +21,12 @@
  *          limitations under the License.
  *
  *******************************************************************************************************/
+/*
+ * 中文说明：
+ * 本文件实现 LL Privacy 主机示例中 Host 层的核心逻辑：HCI Controller 事件回调分发（连接/断开/
+ * 扫描报告/连接参数&PHY 更新）、L2CAP 数据包处理（ATT MTU 交换、连接参数更新请求、SMP）以及
+ * 扫描参数配置（含基于已绑定设备 IRK 的地址解析列表配置，用于识别对端随机地址 RPA）。
+ */
 #include "tl_common.h"
 #include "drivers.h"
 #include "stack/ble/ble.h"
@@ -52,8 +58,9 @@ int master_connected_led_on = 0;
 
 
 
-int master_auto_connect = 0;
-int user_manual_pairing;
+// 注意：下面两个同名全局变量与 blm_le_adv_report_event_handle() 内部的同名局部变量重名（局部会
+// 遮蔽全局），全局实际上从未被读取，属于无效的死代码，故删除（不影响实际行为，因为
+// 函数内部已重新定义了同名局部变量）。
 
 
 int	central_pairing_enable = 0;

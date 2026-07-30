@@ -21,11 +21,18 @@
  *          limitations under the License.
  *
  *******************************************************************************************************/
+/*
+ * 中文说明：
+ * 本文件声明了 BLE Remote 用户界面（按键、LED、OTA 提示）相关的对外接口，包括 UI 初始化、
+ * 按键扫描回调及 OTA 状态提示函数等。
+ */
 #ifndef APP_UI_H_
 #define APP_UI_H_
 
 
+/* 中文说明：MCU 正常上电/深睡唤醒时的 UI 初始化，配置按键唤醒 GPIO、LED 初始状态等。 */
 void app_ui_init_normal(void);
+/* 中文说明：MCU 从深度睡眠 retention 模式唤醒时的 UI 初始化（仅恢复按键唤醒 GPIO 与 LED）。 */
 void app_ui_init_deepRetn(void);
 
 
@@ -36,6 +43,7 @@ void app_ui_init_deepRetn(void);
  * @param[in]  n - data length of event
  * @return     none
  */
+/* 中文说明：按键矩阵扫描入口，检测按键按下/释放状态变化，并驱动 IR 学习状态、音频状态检测等联动逻辑。 */
 void proc_keyboard(u8 e, u8 *p, int n);
 
 

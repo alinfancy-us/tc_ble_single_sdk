@@ -21,6 +21,11 @@
  *          limitations under the License.
  *
  *******************************************************************************************************/
+/*
+ * 中文说明：
+ * 本文件声明了 BLE Remote 红外发射（NEC 协议）相关的常量、控制结构体与接口函数，用于将按键
+ * 转换为标准 NEC 红外码并通过 PWM DMA FIFO 方式发送，同时支持长按自动重复发送。
+ */
 #ifndef RC_IR_H_
 #define RC_IR_H_
 
@@ -106,6 +111,8 @@ ir_send_ctrl_t ir_send_ctrl;
  * @param[in]  none
  * @return     none
  */
+/* 中文说明：初始化红外发射用的 PWM 波形参数（NEC 协议的逻辑 0/1、起始位、停止位、重复码等时序），B85/B87
+ * 使用 PWM0_N 引脚复用方式，TC321X 使用专用红外发射硬件模块。 */
 void rc_ir_init(void);
 
 /**
@@ -113,6 +120,7 @@ void rc_ir_init(void);
  * @param[in]  none
  * @return     none
  */
+/* 中文说明：按键释放时调用，停止当前红外发送（含重复码发送）并关闭相关中断。 */
 void ir_send_release(void);
 
 /**
@@ -121,6 +129,7 @@ void ir_send_release(void);
  * @return     1 - IR is sending
  * 			   0 - IR is not sending
  */
+/* 中文说明：查询当前是否仍在发送红外码，若发送超时（300ms）会自动停止发送。 */
 int ir_sending_check(void);
 
 /**
@@ -130,6 +139,8 @@ int ir_sending_check(void);
  * @param[in]  cmd - the command code to be transmitted.
  * @return     none
  */
+/* 中文说明：按 NEC 协议组装地址与命令（含命令取反校验字节）为 PWM 波形序列并启动 DMA 发送；
+ * 若与上一次发送的命令相同则忽略（去抖/防重复触发）。 */
 void ir_nec_send(u8 addr1, u8 addr2, u8 cmd);
 
 

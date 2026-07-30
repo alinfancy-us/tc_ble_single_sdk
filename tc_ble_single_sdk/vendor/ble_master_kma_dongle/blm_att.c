@@ -32,6 +32,11 @@
 #include "application/keyboard/keyboard.h"
 #include "application/app/usbmouse.h"
 
+/* 中文说明：本文件实现 Master 侧处理从机（如遥控器）上报 ATT 数据后的业务逻辑：
+ * 记录当前 ReadByTypeRequest 的 UUID、将鼠标/键盘/多媒体消费者按键数据转发至本地 USB HID
+ * 接口上报给 PC、断开/换机时清除缓存的 Host 层数据，以及 Google Voice 服务的发现回调。
+ */
+
 #define     TELINK_UNPAIR_KEYVALUE		0xFF  //conn state, unpair
 
 

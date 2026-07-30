@@ -21,6 +21,12 @@
  *          limitations under the License.
  *
  *******************************************************************************************************/
+/* 中文说明：本文件是 ble_slave_2_4g 示例工程的应用层核心文件，实现 BLE 从机（Slave）角色的初始化
+ * (user_init_normal)、广播/连接/断开等 LinkLayer 事件回调、GAP/SMP/GATT 等 Host 事件回调、
+ * 应用层 Flash 保护（可选）以及主循环 main_loop。当工程使能 TEST_2P4G_MODE 时，还会在
+ * BLE 空闲状态下驱动 2.4G 私有协议的并发（concurrent）处理。文件中涉及芯片区分的分支已按
+ * MCU_CORE_TYPE 区分 B85/B87/TC321X，本次仅关注 B85 (MCU_CORE_825x) 分支及公共逻辑。
+ */
 #include "tl_common.h"
 #include "drivers.h"
 #include "stack/ble/ble.h"
@@ -128,6 +134,9 @@ _attribute_data_retention_ static u32 button_detect_tick = 0;
  * @param[in]  n - data length of event
  * @return     none
  */
+/* 中文说明：进入低功耗 suspend 前的回调。当处于已连接状态且距下一次系统唤醒时间超过 80ms 时，
+ * 额外设置 GPIO 唤醒源，以便在此期间外部引脚变化也能唤醒 MCU。
+ */
 void  task_sleep_enter (u8 e, u8 *p, int n)
 {
 	(void)e;(void)p;(void)n;
@@ -151,6 +160,9 @@ void  task_sleep_enter (u8 e, u8 *p, int n)
  * @param[in]  p - data pointer of event
  * @param[in]  n - data length of event
  * @return     none
+ */
+/* 中文说明：定向广播超时后切换为非定向广播。重新设置广播参数为可连接非定向广播，
+ * 并清空地址解析列表（resolving list），然后重新使能广播。
  */
 void 	app_switch_to_undirected_adv(u8 e, u8 *p, int n)
 {
@@ -179,6 +191,9 @@ void 	app_switch_to_undirected_adv(u8 e, u8 *p, int n)
  * @param[in]  n - data length of event
  * @return     none
  */
+/* 中文说明：连接建立事件回调。请求将连接间隔更新为 50ms（保证 2.4GHz 通信可靠性），
+ * 若使能 LED 且未使能连接电流测试模式，则点亮红色 LED 表示已连接。
+ */
 void	task_connect (u8 e, u8 *p, int n)
 {
 	(void)e;(void)p;(void)n;
@@ -201,6 +216,9 @@ void	task_connect (u8 e, u8 *p, int n)
  * @param[in]  p - data pointer of event
  * @param[in]  n - data length of event
  * @return     none
+ */
+/* 中文说明：连接断开事件回调。根据断开原因分支目前均为空实现（预留给用户扩展），
+ * 打印断开原因日志，若使能 LED 则熄灭红色 LED，并记录重新开始广播的时间戳。
  */
 void 	task_terminate(u8 e, u8 *p, int n) //*p is terminate reason
 {
@@ -237,6 +255,9 @@ void 	task_terminate(u8 e, u8 *p, int n) //*p is terminate reason
  * @param[in]  n - data length of event
  * @return     none
  */
+/* 中文说明：进入待机（standby）前的回调。仅在使能 2.4G 测试模式且当前未在进行 OTA 时，
+ * 取出唤醒时间点（p 指向的 u32），驱动 2.4G 私有协议的主循环处理。
+ */
 void task_standby_enter (u8 e, u8 *p, int n)
 {
     (void)e;(void)n;
@@ -256,6 +277,9 @@ void task_standby_enter (u8 e, u8 *p, int n)
  * @param[in]  n - data length of event
  * @return     none
  */
+/* 中文说明：退出待机（唤醒）后的回调。重新设置 RF 发射功率等级，因为相关寄存器设置在
+ * suspend 期间会被复位，每次唤醒后都需要重新配置。
+ */
 void task_standby_exit (u8 e, u8 *p, int n)
 {
 	(void)e;(void)p;(void)n;
@@ -269,6 +293,8 @@ void task_standby_exit (u8 e, u8 *p, int n)
  * @param[in]  p - data pointer of event
  * @param[in]  n - data length of event
  * @return     none
+ */
+/* 中文说明：数据长度扩展（DLE）事件回调。当前未注册使用，仅打印协商后的有效收发最大字节数日志。
  */
 void	task_dle_exchange (u8 e, u8 *p, int n)
 {
@@ -284,6 +310,10 @@ void	task_dle_exchange (u8 e, u8 *p, int n)
  * @param[in]  para - data pointer of event
  * @param[in]  n - data length of event
  * @return     0
+ */
+/* 中文说明：Host 层事件回调（GAP/SMP/GATT 等）。按事件类型分支处理，目前主要用于打印配对开始/
+ * 成功/失败以及 MTU 交换等日志，其余事件（加密完成、安全流程完成、TK 显示/请求等）为空实现，
+ * 供用户按需扩展。
  */
 int app_host_event_callback (u32 h, u8 *para, int n)
 {
@@ -379,6 +409,9 @@ int app_host_event_callback (u32 h, u8 *para, int n)
  * @param	   none
  * @return     none
  */
+/* 中文说明：BLE/2.4G 并发（concurrent）模式管理。默认使能并发模式，但若正在进行 OTA
+ * （BLE_OTA_SERVER_ENABLE 使能时），则临时关闭并发模式，避免 OTA 写flash期间与 2.4G 任务冲突。
+ */
 void blt_concurrent_proc(void)
 {
     blc_ll_enableConcurrentMode();
@@ -395,6 +428,17 @@ void blt_concurrent_proc(void)
  * @brief		user initialization when MCU power on or wake_up from deepSleep mode
  * @param[in]	none
  * @return      none
+ */
+/* 中文说明：MCU 上电或从深度休眠（非保持）唤醒后的用户初始化入口。主要流程：
+ * 1. 随机数发生器初始化（B85/B87 需要）、调试打印初始化、读取 flash 容量自动配置自定义扬区、
+ *    加载定制参数；
+ * 2. 可选低电量检测、可选 flash 保护初始化；
+ * 3. 初始化 MAC 地址、BLE Controller 各模块（基础 MCU、待机、广播、连接、从机角色）；
+ * 4. 初始化 Host 层（GAP/L2CAP/ATT/GATT）及可选 SMP 安全模块；
+ * 5. 注册 Host 事件回调与事件掩码，可选初始化 OTA 服务；
+ * 6. 根据是否存在绑定设备选择定向/非定向广播，配置广播数据并使能广播；
+ * 7. 注册连接/断开/待机事件回调，若使能 TEST_2P4G_MODE 则初始化 2.4G 并发模块；
+ * 8. 最后检查协议栈初始化结果（失败会在内部死循环并打印错误码）。
  */
 _attribute_no_inline_ void user_init_normal(void)
 {
@@ -629,6 +673,11 @@ _attribute_no_inline_ void user_init_normal(void)
  * 			   		but we use [0x10000, 0x20000):  op_addr_begin = 0x10000, op_addr_end = 0x20000
  * @return     none
  */
+/* 中文说明：应用层 flash 保护操作处理函数（仅当 APP_FLASH_PROTECTION_ENABLE 使能时编译，
+ * 本工程默认未使能）。初始化时锁定全部旧固件/新 OTA 固件区域，在 OTA 擦除旧固件/写入新固件的
+ * 开始/结束事件中分别解锁/重新加锁 flash，确保 flash 写/擦操作前必须先解锁。
+ * 其中针对 MULTI_BOOT_ADDR_0x80000 的分支仅适用于 B87 (MCU_CORE_827x)，不属于本次关注范围。
+ */
 _attribute_data_retention_ u16  flash_lockBlock_cmd = 0;
 void app_flash_protection_operation(u8 flash_op_evt, u32 op_addr_begin, u32 op_addr_end)
 {
@@ -735,6 +784,12 @@ void app_flash_protection_operation(u8 flash_op_evt, u32 op_addr_begin, u32 op_a
  * @brief		This is main_loop function
  * @param[in]	none
  * @return      none
+ */
+/* 中文说明：应用层主循环，在 main() 的 while(1) 中被反复调用。依次执行：
+ * 1. BLE 协议栈主循环 blt_sdk_main_loop()；
+ * 2. 若使能 2.4G 测试模式且当前为空闲状态，驱动 2.4G 私有协议主循环；
+ * 3. 可选的低电量周期检测（500ms 一次）；
+ * 4. BLE 与 2.4G 并发模式管理 blt_concurrent_proc()。
  */
 _attribute_no_inline_ void main_loop(void)
 {

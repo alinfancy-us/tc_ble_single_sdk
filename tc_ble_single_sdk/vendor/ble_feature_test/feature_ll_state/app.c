@@ -21,6 +21,15 @@
  *          limitations under the License.
  *
  *******************************************************************************************************/
+/*
+ * 模块说明（中文）：
+ * 本文件是 feature_ll_state 示例工程的应用层实现，用于演示 BLE Link Layer 在不同状态
+ * （单独广播、单独扫描、连接从机角色下的广播/扫描等组合场景）下的基本用法。根据
+ * feature_config.h 中 FEATURE_TEST_MODE 的取值，编译期选择对应的初始化分支：设置广播/
+ * 扫描参数、注册连接与断开等 Link Layer 事件回调、以及低功耗（PM）挂起策略。
+ * 该文件对 B85（MCU_CORE_825x）与其他芯片共用的逻辑保持一致，仅在少量位置（如
+ * DeepSleep 提前唤醒时间）按芯片型号区分参数。
+ */
 #include "tl_common.h"
 #include "drivers.h"
 #include "stack/ble/ble.h"
@@ -77,6 +86,8 @@ _attribute_data_retention_	int device_in_connection_state;
  * @param[in]  p - data pointer of event
  * @param[in]  n - data length of event
  * @return     none
+ * 中文说明：连接建立事件回调。打印对端地址信息，将连接状态标志置 1，
+ * 若使能 UI LED 则点亮红灯指示已连接。
  */
 void	task_connect (u8 e, u8 *p, int n)
 {
@@ -100,6 +111,9 @@ void	task_connect (u8 e, u8 *p, int n)
  * @param[in]  p - data pointer of event
  * @param[in]  n - data length of event
  * @return     none
+ * 中文说明：连接断开事件回调。将连接状态标志清零，根据不同的断开原因
+ * （超时、对端主动断开、MIC 校验失败等）分支处理（当前分支体为空，仅作分类），
+ * 打印断开原因，若使能 UI LED 则熄灭红灯。
  */
 void 	task_terminate(u8 e,u8 *p, int n) //*p is terminate reason
 {
@@ -137,6 +151,8 @@ void 	task_terminate(u8 e,u8 *p, int n) //*p is terminate reason
  * @param[in]  p - data pointer of event
  * @param[in]  n - data length of event
  * @return     none
+ * 中文说明：MCU 从挂起（suspend）状态退出时的回调，重新设置射频发射功率，
+ * 因为挂起唤醒后部分射频寄存器可能需要重新配置。
  */
 void	task_suspend_exit (u8 e, u8 *p, int n)
 {
@@ -149,6 +165,8 @@ void	task_suspend_exit (u8 e, u8 *p, int n)
  * @brief      power management code for application
  * @param	   none
  * @return     none
+ * 中文说明：应用层低功耗处理，根据是否使能 DeepSleep Retention，配置广播/连接态
+ * 下允许进入 suspend 或 deepSleep retention 的挂起掩码。
  */
 void blt_pm_proc(void)
 {
@@ -183,6 +201,9 @@ void blt_pm_proc(void)
  * @param[in]  p - data pointer of event
  * @param[in]  n - data length of event
  * @return     none
+ * 中文说明：HCI 控制器事件回调，用于扫描模式下接收 LE Advertising Report 事件。
+ * 注意：DBG_ADV_REPORT_ON_RAM 调试分支默认关闭（宏值为 0），其中引用的 pa 变量
+ * 声明被注释掉，若日后打开该调试宏需一并恢复 pa 的声明，否则编译报错。
  */
 int controller_event_callback (u32 h, u8 *p, int n)
 {
@@ -227,6 +248,11 @@ return 0;
  * @brief		user initialization when MCU power on or wake_up from deepSleep mode
  * @param[in]	none
  * @return      none
+ * 中文说明：MCU 上电或从 DeepSleep（非 retention）唤醒后的用户初始化入口。
+ * 依次完成：随机数发生器初始化、调试串口初始化、Flash 尺寸自适应配置、
+ * MAC 地址初始化、Controller 基础模块/广播/扫描/连接从机模块初始化，
+ * 并根据 FEATURE_TEST_MODE 选择的场景设置广播参数、扫描参数及事件回调，
+ * 最后配置低功耗挂起策略并做初始化自检。
  */
 void user_init_normal(void)
 {
@@ -582,6 +608,8 @@ void user_init_normal(void)
  * @brief		user initialization when MCU wake_up from deepSleep_retention mode
  * @param[in]	none
  * @return      none
+ * 中文说明：MCU 从 DeepSleep Retention 唤醒后的用户初始化入口，恢复之前保存的
+ * 自定义参数与射频功率设置，并调用 Link Layer 的 retention 恢复流程。
  */
 _attribute_ram_code_ void user_init_deepRetn(void)
 {
@@ -604,6 +632,8 @@ _attribute_ram_code_ void user_init_deepRetn(void)
  * @brief     BLE main loop
  * @param[in]  none.
  * @return     none.
+ * 中文说明：BLE 主循环，驱动协议栈处理（blt_sdk_main_loop）及低功耗管理
+ * （blt_pm_proc），本示例中无额外 UI 处理。
  */
 void main_loop(void)
 {

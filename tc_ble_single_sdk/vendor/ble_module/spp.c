@@ -28,6 +28,13 @@
 #include "app_att.h"
 #include "spp.h"
 
+/* 中文说明：本文件实现 BLE 透传模块（SPP，Serial Port Profile 类似功能）的核心逻辑。
+ * 主要包括：BLE 协议栈事件回调（连接、断开、参数更新等）与 Host 层 GAP/SMP 安全事件回调、
+ * 通过 UART 收发 HCI 私有指令(0xFFxx 系列 SPP_CMD_*) 完成设置广播、白名单、连接参数、
+ * 设备名称、发送 notify 数据等控制功能，以及 UART 收发 FIFO 的填充/取出与模块重启处理。
+ * 该文件为芯片无关的应用层代码，未按 B85/B87/TC321X 做分支，可直接应用于 B85。
+ */
+
 
 extern int	module_uart_data_flg;
 extern u32 module_wakeup_module_tick;
@@ -48,6 +55,12 @@ _attribute_data_retention_	u32 spp_cmd_restart_flag;
  * @param[in]  param - data pointer of event
  * @param[in]  n     - data length of event
  * @return     none
+ */
+/* 中文说明：BLE 控制器（LinkLayer）事件回调函数。当发生模块相关事件（如扫描响应、
+ * 连接建立/断开、连接参数请求/更新、通道图更新、GPIO 提前唤醒、广播超时、进入/退出
+ * suspend 等）时被协议栈调用，这里根据事件类型组装 spp_event_t 结构体并通过
+ * spp_send_data() 经 UART 上报给主机（MCU），部分事件（如连接建立）还会主动发起
+ * 连接参数更新请求。
  */
 int controller_event_handler(u32 h, u8 *para, int n)
 {
@@ -145,6 +158,10 @@ int controller_event_handler(u32 h, u8 *para, int n)
  * @param[in]  n       the length of event parameter.
  * @return
  */
+/* 中文说明：BLE Host 层（GAP/SMP）事件回调函数，处理配对开始/成功/失败、连接加密完成、
+ * 显示/请求 passkey、OOB 请求、数字比较等安全相关事件。当前示例中各分支均为空实现，
+ * 仅作为用户扩展点（可在对应 case 中添加业务逻辑，例如根据配对结果做灯效或存储处理）。
+ */
 int app_host_event_callback (u32 h, u8 *para, int n)
 {
 	u8 event = h & 0xFF;
@@ -228,6 +245,9 @@ int app_host_event_callback (u32 h, u8 *para, int n)
  * @param[in]	none
  * @return      0 is ok
  */
+/* 中文说明：从 spp_rx_fifo 中取出一包 UART 接收到的数据，解析出长度字段后，
+ * 调用 bls_uart_handler() 按 SPP 命令格式进行处理，处理完成后弹出该包数据。
+ */
 int rx_from_uart_cb (void)//UART data send to Master,we will handler the data as CMD or DATA
 {
 	if(my_fifo_get(&spp_rx_fifo) == 0)
@@ -254,6 +274,11 @@ int rx_from_uart_cb (void)//UART data send to Master,we will handler the data as
  * @return      0 is ok
  */
 ///////////////////////////////////////////the default bls_uart_handler///////////////////////////////
+/* 中文说明：SPP 私有 HCI 指令的默认处理函数（命令分发中心）。根据 cmdId（0xFFxx）
+ * 逐一匹配设置广播间隔/数据/使能/类型/地址类型、白名单增删改、过滤策略、设备名称、
+ * 连接参数获取/设置、当前工作状态获取、断开连接、重启模块、发送 notify 数据等指令，
+ * 处理结果统一封装到 spp_event_t 并在函数末尾通过 spp_send_data() 上报给主机。
+ */
 int bls_uart_handler (u8 *p, int n)
 {
     (void)p;(void)n;
@@ -429,6 +454,10 @@ int bls_uart_handler (u8 *p, int n)
  * @param[in]   pEvent - event data
  * @return      0 is ok
  */
+/* 中文说明：将一个 spp_event_t 事件写入 spp_tx_fifo 待发送队列（携带 2 字节长度前缀），
+ * 若开启 BLE_MODULE_INDICATE_DATA_TO_MCU，会在 UART 从空闲变为有数据时拉高
+ * GPIO_WAKEUP_MCU 通知 MCU 有数据待取；若 FIFO 空间不足则直接返回 -1 放弃本次发送。
+ */
 int spp_send_data (u32 header, spp_event_t * pEvt)
 {
 
@@ -478,6 +507,10 @@ uart_data_t T_txdata_buf;
  * @param[in]	none
  * @return      0 is ok
  */
+/* 中文说明：将 spp_tx_fifo 中待发送的数据通过 UART DMA 方式发出。若上一次发送尚未
+ * 完成（isUartTxDone==0）则本次不发送；若使能 BLE_MODULE_INDICATE_DATA_TO_MCU，
+ * 会等待 MCU 从被唤醒到可稳定接收 UART 数据所需的响应时间后再真正发送。
+ */
 int tx_to_uart_cb (void)
 {
 	if(spp_tx_fifo.wptr == spp_tx_fifo.rptr){
@@ -509,6 +542,9 @@ int tx_to_uart_cb (void)
  * @brief		this function is used to restart module.
  * @param[in]	none
  * @return      none
+ */
+/* 中文说明：处理模块重启请求（收到 SPP_CMD_RESTART_MOD 指令后设置的 spp_cmd_restart_flag）。
+ * 预留 500ms 让模块把 UART 应答发送给主机后，再通过 deepsleep 定时唤醒的方式重启模块。
  */
 void spp_restart_proc(void)
 {

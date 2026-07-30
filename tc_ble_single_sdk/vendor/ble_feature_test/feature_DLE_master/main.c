@@ -29,6 +29,11 @@
 
 #if (FEATURE_TEST_MODE == TEST_LL_DATA_LENGTH_EXTENSION_MASTER)
 
+/*
+ * 中文说明：本文件为 DLE 主机测试工程的程序入口，完成时钟/电源、GPIO、
+ * 时钟初始化后调用 user_init 并进入主循环。
+ */
+
 /**
  * @brief   IRQ handler
  * @param   none.

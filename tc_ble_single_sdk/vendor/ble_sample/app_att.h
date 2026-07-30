@@ -24,6 +24,11 @@
 #ifndef APP_ATT_H_
 #define APP_ATT_H_
 
+/*
+ * 中文说明：本文件定义 ble_sample 示例的 ATT 句柄（Handle）枚举表，涵盖 GAP/GATT/
+ * 设备信息/HID/电量/OTA（可选）等各服务及特征值的句柄编号，供 app_att.c 中的属性表
+ * 及应用层读写回调按句柄索引对应属性使用。
+ */
 
 
 

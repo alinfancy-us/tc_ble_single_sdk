@@ -21,6 +21,14 @@
  *          limitations under the License.
  *
  *******************************************************************************************************/
+/*
+ * 中文说明：
+ * 本文件是 BLE PHY 连接测试示例（feature_phy_conn）的主应用逻辑，用于演示从机（Slave）在
+ * 连接建立后周期性调用 blc_ll_setPhy 在 1M/2M/Coded(S2)/Coded(S8) PHY 之间切换的用法。
+ * 主要功能包括：广播/扩展广播参数初始化、连接与断开事件回调、PHY 切换测试状态机（mainloop）、
+ * 简单的 HID 键盘按键扫描与上报（可选）、以及低功耗管理（PM）挂起策略配置。
+ * 仅 B85（MCU_CORE_825x）及与芯片无关的公共逻辑在此文件中维护/审阅，B87/TC321X 专属分支未做改动。
+ */
 #include "tl_common.h"
 #include "drivers.h"
 #include "stack/ble/ble.h"
@@ -135,6 +143,8 @@ _attribute_data_retention_	int device_in_connection_state;
 	 * @brief   Check changed key value.
 	 * @param   none.
 	 * @return  none.
+	 * 中文说明：检测按键状态变化，区分多媒体键（音量+/-）与普通键盘键，
+	 * 通过 GATT Notify 上报 HID 输入报告；按键释放时上报清零报文。
 	 */
 	void key_change_proc(void)
 	{
@@ -196,6 +206,8 @@ _attribute_data_retention_	int device_in_connection_state;
 	 * @param[in]  p    - Pointer point to event parameter.
 	 * @param[in]  n    - the length of event parameter.
 	 * @return     none.
+	 * 中文说明：键盘任务处理函数，按固定周期（8ms）扫描按键矩阵，检测到按键变化时
+	 * 调用 key_change_proc 进行上报处理。
 	 */
 	void proc_keyboard(u8 e, u8 *p, int n)
 	{
@@ -224,6 +236,8 @@ _attribute_data_retention_	int device_in_connection_state;
 	 * @param[in]  p - data pointer of event
 	 * @param[in]  n - data length of event
 	 * @return     none
+	 * 中文说明：进入 suspend 前的回调，如果处于连接状态且距离下次唤醒时间较长（>80 tick），
+	 * 则设置 GPIO 唤醒源，保证外部按键可及时唤醒 MCU。
 	 */
 	void  task_suspend_enter (u8 e, u8 *p, int n)
 	{
@@ -248,6 +262,8 @@ _attribute_data_retention_	int device_in_connection_state;
  * @param[in]  p - data pointer of event
  * @param[in]  n - data length of event
  * @return     none
+ * 中文说明：连接建立事件回调，打印对端地址日志、请求更新连接参数（10ms 间隔），
+ * 并记录连接建立时间戳，供 PHY 切换测试状态机使用；同时点亮 LED 指示已连接。
  */
 void	task_connect (u8 e, u8 *p, int n)
 {
@@ -275,6 +291,8 @@ void	task_connect (u8 e, u8 *p, int n)
  * @param[in]  p - data pointer of event
  * @param[in]  n - data length of event
  * @return     none
+ * 中文说明：连接断开事件回调，清除连接状态与计时器，按断开原因分支（此处仅占位，
+ * 未做差异化处理），打印断开原因并熄灭 LED。
  */
 void 	task_terminate(u8 e,u8 *p, int n) //*p is terminate reason
 {
@@ -313,6 +331,8 @@ void 	task_terminate(u8 e,u8 *p, int n) //*p is terminate reason
  * @param[in]  p - data pointer of event
  * @param[in]  n - data length of event
  * @return     none
+ * 中文说明：PHY 切换完成事件回调，当前为空实现（仅作为事件挂钩预留），
+ * 如需要可在此打印/记录实际生效的 PHY 类型。
  */
 void 	callback_phy_update_complete_event(u8 e,u8 *p, int n)
 {
@@ -325,6 +345,8 @@ void 	callback_phy_update_complete_event(u8 e,u8 *p, int n)
  * @param[in]  p - data pointer of event
  * @param[in]  n - data length of event
  * @return     none
+ * 中文说明：退出 suspend 后的回调，恢复 RF 发射功率等级（suspend 唤醒后相关寄存器会被复位，
+ * 因此需要重新设置）。
  */
 void	task_suspend_exit (u8 e, u8 *p, int n)
 {
@@ -337,6 +359,8 @@ void	task_suspend_exit (u8 e, u8 *p, int n)
  * @brief      power management code for application
  * @param	   none
  * @return     none
+ * 中文说明：应用层电源管理策略，配置广播/连接态允许挂起（suspend）及深度睡眠保留（deepsleep
+ * retention）的掩码；当按键仍在扫描或未释放时，临时禁止挂起以保证按键响应。
  */
 void blt_pm_proc(void)
 {
@@ -364,6 +388,10 @@ void blt_pm_proc(void)
  * @brief		user initialization when MCU power on or wake_up from deepSleep mode
  * @param[in]	none
  * @return      none
+ * 中文说明：MCU 上电或从深度睡眠（非 retention）唤醒时的用户初始化入口。完成随机数发生器、
+ * 调试日志、Flash 参数加载、MAC 地址初始化、Controller/Host 协议栈初始化（含（扩展）广播、
+ * 连接、从机角色、2M/Coded PHY 特性）、GATT/SMP 初始化、事件回调注册、广播数据与参数设置，
+ * 以及低功耗管理（PM）和按键唤醒源的配置。
  */
 void user_init_normal(void)
 {
@@ -534,6 +562,9 @@ void user_init_normal(void)
  * @brief		user initialization when MCU wake_up from deepSleep_retention mode
  * @param[in]	none
  * @return      none
+ * 中文说明：MCU 从深度睡眠 retention 模式唤醒时的初始化入口（需运行在 ramcode 中）。
+ * 恢复自定义参数、基础 MCU 初始化、RF 功率等级、协议栈 deep retention 状态恢复，
+ * 并重新配置按键 GPIO 唤醒源。
  */
 _attribute_ram_code_ void user_init_deepRetn(void)
 {
@@ -566,6 +597,9 @@ _attribute_data_retention_	int AAA_update = 0;
  * @brief		2m_coded_phy_connection test in mainloop
  * @param[in]	none
  * @return      none
+ * 中文说明：PHY 切换测试状态机，连接建立 10 秒后开始按 2 秒周期循环测试
+ * Coded(S2) -> 2M -> Coded(S8) -> 1M 四种 PHY 模式的切换（通过 blc_ll_setPhy）。
+ * 注意 Coded PHY 相关分支在 TC321X 芯片上被条件编译排除（TC321X 不支持/未启用该分支，保持原样未改动）。
  */
 void feature_2m_coded_phy_conn_mainloop(void)
 {
@@ -609,6 +643,8 @@ void feature_2m_coded_phy_conn_mainloop(void)
  * @brief     BLE main loop
  * @param[in]  none.
  * @return     none.
+ * 中文说明：BLE 主循环，依次驱动协议栈主循环（blt_sdk_main_loop）、PHY 切换测试状态机、
+ * 按键扫描处理（可选）以及电源管理挂起策略处理。
  */
 void main_loop(void)
 {

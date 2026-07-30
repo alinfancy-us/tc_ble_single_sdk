@@ -32,6 +32,13 @@
 #include "application/keyboard/keyboard.h"
 #include "application/usbstd/usbkeycode.h"
 
+/*
+ * 中文说明：
+ * 本文件是 L2CAP CoC（Connection-oriented Channel，面向连接的信道）从机功能测试工程的
+ * 应用层实现，演示了从机侧的 ADV/连接、按键触发建立/断开 CoC 连接、通过 CoC 通道
+ * 收发数据，以及 GAP/SMP 主机事件处理等流程。核心业务函数集中在本文件，
+ * 覆盖 B85/B87/TC321X 共用逻辑，仅少量分支按芯片区分（如随机数发生器初始化）。
+ */
 
 #if (FEATURE_TEST_MODE == TEST_L2CAP_COC)
 
@@ -103,6 +110,9 @@ const u8	tbl_scanRsp [] = {
 	 * @brief   Check changed key value.
 	 * @param   none.
 	 * @return  none.
+	 *
+	 * 中文说明：处理按键事件。音量+ 触发发起 LE Credit Based Connection（CoC 建连），
+	 * 音量- 触发通过 CoC 通道发送测试数据；数字键1断开 CoC 连接，数字键2请求更新连接参数。
 	 */
 	void key_change_proc(void)
 	{
@@ -170,6 +180,9 @@ const u8	tbl_scanRsp [] = {
 	 * @param[in]  p    - Pointer point to event parameter.
 	 * @param[in]  n    - the length of event parameter.
 	 * @return     none.
+	 *
+	 * 中文说明：按键扫描任务，按固定周期（8ms）扫描一次按键状态，若检测到按键则调用
+	 * key_change_proc 处理具体的按键动作。
 	 */
 	void proc_keyboard(u8 e, u8 *p, int n)
 	{
@@ -198,6 +211,9 @@ const u8	tbl_scanRsp [] = {
 	 * @param[in]  p - data pointer of event
 	 * @param[in]  n - data length of event
 	 * @return     none
+	 *
+	 * 中文说明：进入 suspend 前的回调。当处于连接态且距离下一次唤醒时间超过 80ms 时，
+	 * 额外设置 GPIO 唤醒源，以便在 suspend/deepSleep 期间也能通过按键唤醒 MCU。
 	 */
 	void  task_suspend_enter (u8 e, u8 *p, int n)
 	{
@@ -222,6 +238,8 @@ const u8	tbl_scanRsp [] = {
  * @param[in]  p - data pointer of event
  * @param[in]  n - data length of event
  * @return     none
+ *
+ * 中文说明：连接建立后的回调，点亮红色 LED 指示当前处于连接状态。
  */
 void	task_connect (u8 e, u8 *p, int n)
 {
@@ -243,6 +261,8 @@ void	task_connect (u8 e, u8 *p, int n)
  * @param[in]  p - data pointer of event
  * @param[in]  n - data length of event
  * @return     none
+ *
+ * 中文说明：连接断开回调，按断开原因分类打印/预留处理逻辑，并熄灭红色 LED。
  */
 void 	task_terminate(u8 e,u8 *p, int n) //*p is terminate reason
 {
@@ -279,6 +299,9 @@ void 	task_terminate(u8 e,u8 *p, int n) //*p is terminate reason
  * @param[in]  para - data pointer of event
  * @param[in]  n - data length of event
  * @return     0
+ *
+ * 中文说明：GAP/SMP 主机事件统一入口，先转发给 CoC 事件处理函数，再按事件类型
+ * 处理配对开始/成功/失败、加密完成、安全流程完成、MTU 交换等 GAP/SMP 事件。
  */
 int app_host_event_callback (u32 h, u8 *para, int n)
 {
@@ -371,6 +394,9 @@ int myC2SWrite(void * p)
  * @return     none.
  */
 
+/*
+ * 中文说明：使用 MTU/SPSM/连接数量等参数初始化并注册 L2CAP CoC 模块。
+ */
 void app_l2cap_coc_init(void)
 {
 	blc_coc_initParam_t regParam = {
@@ -391,6 +417,11 @@ void app_l2cap_coc_init(void)
  * @return
  */
 
+/*
+ * 中文说明：CoC 通道事件回调，处理 CoC 连接建立/断开时维护本地 app_cocCid[]
+ * 状态表（记录 connHandle/mtu/srcCid/dstCid），其余重配置、收发数据完成等
+ * 事件当前仅预留处理位置。
+ */
 int app_host_coc_event_callback (u32 h, u8 *para, int n)
 {
     (void)h;(void)para;(void)n;
@@ -471,12 +502,18 @@ int app_host_coc_event_callback (u32 h, u8 *para, int n)
  * @return     none.
  */
 
+/*
+ * 中文说明：向当前连接发起 LE Credit Based Connection（单一 CoC 连接）请求。
+ */
 void app_createLeCreditBasedConnect(void)
 {
 	ble_sts_t state = blc_l2cap_createLeCreditBasedConnect(BLS_CONN_HANDLE);
 	if(state){}
 }
 
+/*
+ * 中文说明：向当前连接发起 Credit Based Connection 请求（一次创建多个 CoC cid，此处为5个）。
+ */
 void app_createCreditBasedConnect(void)
 {
 	ble_sts_t state = blc_l2cap_createCreditBasedConnect(BLS_CONN_HANDLE, 5);
@@ -490,6 +527,10 @@ _attribute_data_retention_	u8 	coc_test_Data[] = {0x00, 0x01, 0x02, 0x03, 0x04, 
  * @brief	Send data to all connections on the CoC channel.
  * @param[in]  none.
  * @return     none.
+ */
+/*
+ * 中文说明：遍历所有已建立的 CoC 连接，将固定测试数据 coc_test_Data 发送出去，
+ * 发送长度取数据本身长度与对端 MTU 的较小值，避免超出对端可接收的 MTU。
  */
 void app_sendCocData(void)
 {
@@ -507,6 +548,9 @@ void app_sendCocData(void)
  * @brief	Disconnect the CoC channel connection.
  * @param[in]  none.
  * @return     none.
+ */
+/*
+ * 中文说明：遍历所有已建立的 CoC 连接并逐一断开对应通道。
  */
 void app_disconnCocConnect(void)
 {
@@ -526,6 +570,10 @@ void app_disconnCocConnect(void)
  * @brief		user initialization when MCU power on or wake_up from deepSleep mode
  * @param[in]	none
  * @return      none
+ *
+ * 中文说明：MCU 上电或从 deepSleep（非 retention）唤醒时的用户初始化入口。
+ * 依次完成：随机数发生器初始化（B85/B87）、调试口初始化、Flash 自动配置、
+ * 控制器/主机协议栈初始化、ATT/SMP 初始化、CoC 模块初始化、ADV 参数配置及使能等。
  */
 void user_init_normal(void)
 {
@@ -636,6 +684,8 @@ void user_init_normal(void)
  * @brief		user initialization when MCU wake_up from deepSleep_retention mode
  * @param[in]	none
  * @return      none
+ *
+ * 中文说明：从 deepSleep_retention 模式唤醒时的初始化入口，本工程无需额外处理，空实现。
  */
 _attribute_ram_code_ void user_init_deepRetn(void)
 {
@@ -646,6 +696,8 @@ _attribute_ram_code_ void user_init_deepRetn(void)
  * @brief     BLE main loop
  * @param[in]  none.
  * @return     none.
+ *
+ * 中文说明：主循环，先驱动 BLE 协议栈处理（blt_sdk_main_loop），再处理按键扫描任务。
  */
 void main_loop(void)
 {

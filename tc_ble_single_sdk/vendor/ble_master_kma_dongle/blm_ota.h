@@ -24,6 +24,9 @@
 #ifndef BLM_OTA_H_
 #define BLM_OTA_H_
 
+/* 中文说明：本头文件声明 OTA（固件空中升级）主循环处理函数以及 OTA 测试模式标志，
+ * 配合 blm_ota.c 实现 Master 作为 OTA 主导方向时的固件推送/校验逻辑。
+ */
 
 /**
  * @brief		ota proc in main loop

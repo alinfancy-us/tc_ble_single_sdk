@@ -27,6 +27,11 @@
 
 #if (FEATURE_TEST_MODE == TEST_MD_MASTER)
 
+/*
+ * 中文说明：本文件为 feature_md_master 示例的编译时配置，包括与对端从机约定
+ * 一致的 ATT 句柄、SMP 使能、调试日志、开发板选型、按键矩阵及系统时钟频率等。
+ */
+
 
 #include  "application/audio/audio_common.h"
 

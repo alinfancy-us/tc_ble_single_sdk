@@ -24,6 +24,10 @@
 #ifndef APP_H_
 #define APP_H_
 
+/* 中文说明：本头文件为“BLE 从机 + 2.4G”双模工程的应用层顶层接口声明，包含上电/深度睡眠唤醒后的
+ * 两种初始化入口、BLE 主循环以及 OTA/按键等全局状态变量。
+ */
+
 
 extern unsigned int	scan_pin_need;
 extern int button_not_released;

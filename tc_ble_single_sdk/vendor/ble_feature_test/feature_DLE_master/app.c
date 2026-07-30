@@ -31,6 +31,13 @@
 #include "application/keyboard/keyboard.h"
 #include "application/usbstd/usbkeycode.h"
 
+/*
+ * 中文说明：
+ * 本文件是 BLE 主机（Master）端 LL 数据长度扩展（DLE, Data Length Extension）
+ * 测试工程的应用层实现，包含扫描/自动或手动配对、MTU 尺寸交换、
+ * DLE 数据长度交换、连接参数更新、断开连接/解除配对等主机流程。
+ * 除随机数发生器初始化处按 B85/B87 区分外，其余为芯片无关的公共主机逻辑。
+ */
 
 #if (FEATURE_TEST_MODE == TEST_LL_DATA_LENGTH_EXTENSION_MASTER)
 
@@ -113,6 +120,9 @@ static u32 final_MTU_size = 23;
 	 * @brief   Check changed key value.
 	 * @param   none.
 	 * @return  none.
+	 *
+	 * 中文说明：按键处理。SW2 触发进入配对状态（若已连接，顺便发送一段随机
+	 * 数据用于测试 DLE/MTU 效果）；SW3 触发退出配对并断开连接。
 	 */
 	void key_change_proc(void)
 	{
@@ -177,6 +187,8 @@ static u32 final_MTU_size = 23;
 	 * @param[in]  p    - Pointer point to event parameter.
 	 * @param[in]  n    - the length of event parameter.
 	 * @return     none.
+	 *
+	 * 中文说明：按固定周期扫描按键，若检测到按键则调用 key_change_proc。
 	 */
 	void proc_keyboard(u8 e, u8 *p, int n)
 	{
@@ -209,6 +221,8 @@ static u32 final_MTU_size = 23;
  * @brief      callback function of smp finish
  * @param[in]  none
  * @return     0
+ *
+ * 中文说明：SMP 配对/加密流程完成后的回调，清除 pending 标志。
  */
 int app_host_smp_finish (void)  //smp finish callback
 {
@@ -226,6 +240,10 @@ int app_host_smp_finish (void)  //smp finish callback
  * @param[in]  conn_handle - connect handle
  * @param[in]  raw_pkt - Pointer point to l2cap data packet
  * @return     0
+ *
+ * 中文说明：处理 L2CAP 层数据包。区分 ATT/信令/SMP 三种通道：ATT 通道处理 MTU
+ * 交换请求/应答及 notify 数据；信令通道处理从机连接参数更新请求并根据间隔/超时阈值
+ * 决定接受或拒绝；SMP 通道在配对进行中时转交主机 SMP 处理函数。
  */
 int app_l2cap_handler (u16 conn_handle, u8 *raw_pkt)
 {
@@ -322,6 +340,10 @@ int app_l2cap_handler (u16 conn_handle, u8 *raw_pkt)
  *     		   after controller is set to scan state, it will report all the ADV packet it received by this event
  * @param[in]  p - data pointer of event
  * @return     0
+ *
+ * 中文说明：处理扫描到的 ADV 报告。若处于手动配对模式（按键触发且 RSSI 足够强）
+ * 或命中自动重连白名单，则向控制器发起建连请求。若上一连接 SMP 未完成则不允许
+ * 创建新连接。
  */
 int blm_le_adv_report_event_handle(u8 *p)
 {
@@ -365,6 +387,10 @@ int blm_le_adv_report_event_handle(u8 *p)
  * @brief		this function serves to connect terminate
  * @param[in]	p - data pointer of event
  * @return      none
+ *
+ * 中文说明：连接断开处理。根据断开原因分支处理（无实质逻辑），清除 SMP pending
+ * 标志、恢复 LED 为未连接状态、重置 DLE/MTU 交换标志及有效 MTU 尺寸，并
+ * 重新开启扫描以等待下一个从机。
  */
 int 	blm_disconnect_event_handle(u8 *p)
 {
@@ -432,6 +458,9 @@ int 	blm_disconnect_event_handle(u8 *p)
  * @param[in]  p - data pointer of event
  * @param[in]  n - data length of event
  * @return     none
+ *
+ * 中文说明：HCI 控制器事件统一入口。处理断开、加密变化/密钥刷新、连接建立、
+ * ADV 报告以及 DLE 数据长度变化等 LE 子事件，连接建立后优先启动 SMP 配对。
  */
 
 int controller_event_callback (u32 h, u8 *p, int n)
@@ -512,6 +541,10 @@ int controller_event_callback (u32 h, u8 *p, int n)
  * @brief		user initialization
  * @param[in]	none
  * @return      none
+ *
+ * 中文说明：主机角色用户初始化入口。依次完成随机数发生器（B85/B87）、调试口、
+ * Flash 自动配置、MAC 地址读取、控制器扫描/初始化/主机模块初始化、GAP/L2CAP/HCI
+ * 回调注册、MTU/SMP 配置以及开启扫描等。
  */
 void user_init(void)
 {
@@ -601,6 +634,10 @@ void user_init(void)
  * @brief		master dle test in mainloop
  * @param[in]	none
  * @return      none
+ *
+ * 中文说明：主循环中的 DLE 测试业务处理：按键扫描；延时发送连接参数更新请求；
+ * 连接建立 500ms 后若对方未主动进行 MTU 交换则主动发起；再隔 500ms 若未进行
+ * DLE 交换则主动发起 DLE 请求；处理解除配对时的断开连接流程。
  */
 void feature_mdle_test_mainloop(void)
 {
@@ -658,6 +695,8 @@ void feature_mdle_test_mainloop(void)
  * @brief     BLE main loop
  * @param[in]  none.
  * @return     none.
+ *
+ * 中文说明：主循环，驱动协议栈处理后再执行 DLE 测试业务循环。
  */
 void main_loop(void)
 {

@@ -25,6 +25,14 @@
 
 #if (FEATURE_TEST_MODE == TEST_MD_MASTER)
 
+/*
+ * 模块说明（中文）：
+ * 本文件是 feature_md_master（More Data 主机）示例的应用层入口，完成 BLE
+ * Controller/Host 初始化（扫描、发起连接、主机角色、SMP 配对等），并在主循环中
+ * 处理配对/解除配对流程与键盘扫描。该文件不区分芯片型号，适用于 B85 与
+ * 其他支持的芯片。
+ */
+
 #include "tl_common.h"
 #include "drivers.h"
 #include "stack/ble/ble.h"
@@ -52,6 +60,9 @@ int write_data_test_tick;
  * @brief		user initialization
  * @param[in]	none
  * @return      none
+ * 中文说明：主机端用户初始化入口。依次完成随机数发生器/调试串口初始化、
+ * MAC 地址初始化、Controller 扫描/发起/连接/单连接主机模块初始化，Host 端
+ * 初始化 GAP/L2CAP/HCI 事件回调、SMP（若使能），最后设置扫描参数并使能扫描。
  */
 void user_init(void)
 {
@@ -142,6 +153,8 @@ void user_init(void)
  * @brief		host pair or upair proc in main loop
  * @param[in]	none
  * @return      none
+ * 中文说明：主循环中处理解除配对请求，若 central_unpair_enable 置位且当前处于
+ * 连接状态，则主动断开连接并清除本地绑定信息，断开完成后恢复断开标志。
  */
 _attribute_ram_code_
 void host_pair_unpair_proc(void)
@@ -177,6 +190,8 @@ void host_pair_unpair_proc(void)
  * @brief     BLE main idle loop
  * @param[in]  none.
  * @return     none.
+ * 中文说明：主空闲循环，驱动协议栈、配对/解除配对处理及键盘扫描（若使能），
+ * 并在连接建立一段时间后触发一次测试数据发送定时器（下方 loopback 测试代码默认关闭）。
  */
 int main_idle_loop (void)
 {
@@ -217,6 +232,7 @@ int main_idle_loop (void)
  * @brief     BLE main loop
  * @param[in]  none.
  * @return     none.
+ * 中文说明：BLE 主循环，直接转发至 main_idle_loop。
  */
 void main_loop(void)
 {

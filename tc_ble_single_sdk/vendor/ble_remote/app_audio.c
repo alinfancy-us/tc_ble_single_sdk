@@ -33,6 +33,10 @@
 #include "vendor/common/blt_led.h"
 #include "battery_check.h"
 
+/* 中文说明：本文件实现 BLE Remote 的语音（麦克风）采集与上报功能，包括语音按键按下/松开检测、
+ * 麦克风采样启启用、音频编码（ADPCM/SBC 等，取决于 TL_AUDIO_MODE）任务驱动、通过 GATT Notify 或
+ * HID 上报给主机，以及连接 MTU 交换请求等辅助逻辑。与芯片无关，均为音频模式分支。
+ */
 
 
 

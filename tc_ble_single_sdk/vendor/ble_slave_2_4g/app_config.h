@@ -23,6 +23,11 @@
  *******************************************************************************************************/
 #pragma once
 
+/* 中文说明：本文件为 ble_slave_2_4g 示例工程的应用配置文件，通过宏定义选择安全（SMP）、OTA 等功能开关，
+ * 2.4G 私有协议测试模式（TEST_2P4G_MODE，可与 BLE 并发），目标 EVK 板型（B85/B87/TC321X，由
+ * __PROJECT_8258_BLE_SLAVE_2P4G__ 等宏区分），UI（按键/LED/按钮）、系统时钟、看门狗及各类调试打印开关。
+ * B85 对应 __PROJECT_8258_BLE_SLAVE_2P4G__ 分支。
+ */
 
 ///////////////////////// Feature Configuration////////////////////////////////////////////////
 #define BLE_APP_SECURITY_ENABLE      					1	//ACL Slave device SMP, strongly recommended enabled

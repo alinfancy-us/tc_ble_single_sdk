@@ -21,6 +21,10 @@
  *          limitations under the License.
  *
  *******************************************************************************************************/
+/*
+ * 中文说明：本文件为 app.c 的头文件，声明应用层的初始化、主循环、按键/键盘
+ * 扫描以及 Flash 写保护等对外接口，供工程内其他模块调用。
+ */
 #ifndef APP_H_
 #define APP_H_
 
@@ -36,6 +40,7 @@ extern volatile u8 rf_working_mode;
  * @brief		user initialization when MCU power on or wake_up from deepSleep mode
  * @param[in]	none
  * @return      none
+ * 中文说明：上电/非 retention 唤醒后的用户初始化入口。
  */
 void user_init_normal(void);
 
@@ -43,6 +48,7 @@ void user_init_normal(void);
  * @brief		user initialization when MCU wake_up from deepSleep_retention mode
  * @param[in]	none
  * @return      none
+ * 中文说明：从深度睡眠 retention 模式唤醒后的初始化入口。
  */
 void user_init_deepRetn(void);
 
@@ -51,6 +57,7 @@ void user_init_deepRetn(void);
  * @brief     BLE main loop
  * @param[in]  none.
  * @return     none.
+ * 中文说明：应用主循环入口，需在系统主循环中循环调用。
  */
 void main_loop(void);
 
@@ -63,6 +70,7 @@ void main_loop(void);
  * @param[in]  p - data pointer of event
  * @param[in]  n - data length of event
  * @return     none
+ * 中文说明：键盘扫描处理函数声明，用于检测按键按下/释放事件。
  */
 void proc_keyboard(u8 e, u8 *p, int n);
 
@@ -73,6 +81,7 @@ void proc_keyboard(u8 e, u8 *p, int n);
  * @param[in]	p - event callback data pointer for when this function is triggered by LinkLayer event
  * @param[in]	n - event callback data length when this function is triggered by LinkLayer event
  * @return      none
+ * 中文说明：按键扫描处理函数声明，用于检测按键按下/释放事件。
  */
 void proc_button(u8 e, u8 *p, int n);
 
@@ -90,6 +99,7 @@ void proc_button(u8 e, u8 *p, int n);
  * 			   e.g. if we write flash sector from 0x10000 to 0x20000, actual operating flash address is 0x10000 ~ 0x1FFFF
  * 			   		but we use [0x10000, 0x20000):  op_addr_begin = 0x10000, op_addr_end = 0x20000
  * @return     none
+ * 中文说明：Flash 写保护处理函数声明，用于应用层与 OTA 过程中的 Flash 加锁/解锁。
  */
 void app_flash_protection_operation(u8 flash_op_evt, u32 op_addr_begin, u32 op_addr_end);
 

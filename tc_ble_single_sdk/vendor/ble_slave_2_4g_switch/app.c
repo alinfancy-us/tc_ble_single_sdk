@@ -21,6 +21,13 @@
  *          limitations under the License.
  *
  *******************************************************************************************************/
+/*
+ * 中文说明：
+ * 本文件是 ble_slave_2_4g_switch 示例工程的应用层主文件，实现 BLE 从机（Slave）的
+ * 广播、连接、配对、低功耗管理以及主循环调度等功能。该工程同时支持在 BLE 模式和
+ * 2.4G 私有协议模式（TEST_2P4G_MODE）之间切换。文件中的初始化、事件回调、电源管理
+ * 及 Flash 保护等逻辑对 B85(MCU_CORE_825x)芯片同样适用（部分代码为 B85/B87 共用）。
+ */
 #include "tl_common.h"
 #include "drivers.h"
 #include "stack/ble/ble.h"
@@ -129,6 +136,9 @@ _attribute_data_retention_ static u32 button_detect_tick = 0;
  * @param[in]  p - data pointer of event
  * @param[in]  n - data length of event
  * @return     none
+ * 中文说明：LinkLayer 进入 suspend（挂起）事件的回调函数。当处于连接状态且距离下次
+ * 唤醒时间大于 80 个系统时钟 tick（约几十毫秒）时，额外设置 GPIO 唤醒源，避免因
+ * suspend 时间过长导致外部按键等 GPIO 事件无法及时唤醒芯片。
  */
 void  task_sleep_enter (u8 e, u8 *p, int n)
 {
@@ -153,6 +163,9 @@ void  task_sleep_enter (u8 e, u8 *p, int n)
  * @param[in]  p - data pointer of event
  * @param[in]  n - data length of event
  * @return     none
+ * 中文说明：定向广播（direct ADV）持续时间超时后的回调函数。将广播参数切换为
+ * 可连接非定向广播（undirected ADV），清空地址解析列表，然后重新使能广播，
+ * 用于配对场景下先短时间定向广播、超时后转为普通广播的流程。
  */
 void 	app_switch_to_undirected_adv(u8 e, u8 *p, int n)
 {
@@ -180,6 +193,9 @@ void 	app_switch_to_undirected_adv(u8 e, u8 *p, int n)
  * @param[in]  p - data pointer of event
  * @param[in]  n - data length of event
  * @return     none
+ * 中文说明：BLE 连接建立成功后的回调函数。打印连接事件日志、发起连接参数更新
+ * 请求（此处设置约 1 秒连接间隔），刷新“最近用户事件时间戳”，并将连接状态
+ * 标志置位；若使能了 LED 指示，则点亮红色 LED 表示已连接。
  */
 void	task_connect (u8 e, u8 *p, int n)
 {
@@ -211,6 +227,10 @@ void	task_connect (u8 e, u8 *p, int n)
  * @param[in]  p - data pointer of event
  * @param[in]  n - data length of event
  * @return     none
+ * 中文说明：BLE 连接断开（terminate）后的回调函数。清除连接状态标志，根据断开
+ * 原因做相应处理（当前仅打印日志，具体原因分支为空，供用户按需扩展），如果之前
+ * 因准备进入深度睡眠而发送了断连命令，则在此禁用广播；同时熄灭红色 LED 并刷新
+ * 广播开始时间戳，为下一次深度睡眠计时做准备。
  */
 void 	task_terminate(u8 e, u8 *p, int n) //*p is terminate reason
 {
@@ -261,6 +281,8 @@ void 	task_terminate(u8 e, u8 *p, int n) //*p is terminate reason
  * @param[in]  p - data pointer of event
  * @param[in]  n - data length of event
  * @return     none
+ * 中文说明：从 suspend 状态退出（唤醒）后的回调函数。重新设置 RF 发射功率，
+ * 因为 suspend 期间相关射频寄存器配置会被复位，需要在每次唤醒后重新配置。
  */
 void task_suspend_exit (u8 e, u8 *p, int n)
 {
@@ -275,6 +297,8 @@ void task_suspend_exit (u8 e, u8 *p, int n)
  * @param[in]  p - data pointer of event
  * @param[in]  n - data length of event
  * @return     none
+ * 中文说明：数据长度扩展（DLE）协商完成后的回调函数，将协商结果（生效的最大
+ * 接收字节数等信息）通过调试日志打印出来，便于确认链路层数据包长度协商情况。
  */
 void	task_dle_exchange (u8 e, u8 *p, int n)
 {
@@ -290,6 +314,9 @@ void	task_dle_exchange (u8 e, u8 *p, int n)
  * @param[in]  para - data pointer of event
  * @param[in]  n - data length of event
  * @return     0
+ * 中文说明：Host 层（GAP/SMP/GATT）事件统一回调函数。根据事件类型分发处理，
+ * 目前主要用于打印配对开始/成功/失败以及 MTU 交换等事件的调试日志，其余分支
+ * （如 TK 显示、数字比较、OOB 等）当前为空，供用户按需扩展安全相关处理逻辑。
  */
 int app_host_event_callback (u32 h, u8 *para, int n)
 {
@@ -384,6 +411,11 @@ int app_host_event_callback (u32 h, u8 *para, int n)
  * @brief      power management code for application
  * @param	   none
  * @return     none
+ * 中文说明：应用层电源管理处理函数，在 main_loop 中周期性调用。空闲(Idle)状态下
+ * 由用户自行调用 cpu_sleep_wakeup 管理低功耗；广播/连接状态下则通过设置
+ * suspend mask 交由 PM 模块管理，并根据按键/OTA 等状态动态调整是否允许休眠。
+ * 同时实现两个自动进入深度睡眠的策略：广播 60 秒无连接后进入深度睡眠；
+ * 连接后 60 秒无用户操作则先发起断连再进入深度睡眠。
  */
 void blt_pm_proc(void)
 {
@@ -448,6 +480,12 @@ void blt_pm_proc(void)
  * @brief		user initialization when MCU power on or wake_up from deepSleep mode
  * @param[in]	none
  * @return      none
+ * 中文说明：MCU 上电或从深度睡眠(非 retention)唤醒后的用户初始化函数，是整个
+ * BLE 应用的核心初始化入口。主要完成：随机数发生器初始化、调试打印初始化、
+ * Flash 容量自适应配置、加载用户自定义参数、低电量检测、Flash 写保护初始化、
+ * MAC 地址初始化、BLE Controller/Host（GAP/SMP/GATT）初始化、OTA 模块初始化、
+ * 广播参数与广播/扫描回应数据配置（含定向广播用于已绑定设备重连的场景）、
+ * 电源管理与按键/键盘 GPIO 唤醒配置等。B85 与 B87 共用本函数的绝大部分逻辑。
  */
 _attribute_no_inline_ void user_init_normal(void)
 {
@@ -707,6 +745,10 @@ _attribute_no_inline_ void user_init_normal(void)
  * @brief		user initialization when MCU wake_up from deepSleep_retention mode
  * @param[in]	none
  * @return      none
+ * 中文说明：MCU 从深度睡眠 retention 模式唤醒后的初始化函数（运行在 RAM 中，
+ * 因为 Flash 在刚唤醒时可能还不可用）。恢复用户自定义参数、重新初始化基础 MCU、
+ * 恢复 RF 发射功率、恢复链路层 deep retention 状态、清除 ADC 校准标志，并重新
+ * 配置按键/键盘的 GPIO 唤醒功能，使设备能继续正常工作。
  */
 _attribute_ram_code_ void user_init_deepRetn(void)
 {
@@ -761,6 +803,10 @@ _attribute_ram_code_ void user_init_deepRetn(void)
  * 			   e.g. if we write flash sector from 0x10000 to 0x20000, actual operating flash address is 0x10000 ~ 0x1FFFF
  * 			   		but we use [0x10000, 0x20000):  op_addr_begin = 0x10000, op_addr_end = 0x20000
  * @return     none
+ * 中文说明：Flash 写保护统一处理函数，负责应用初始化以及 OTA 过程中新旧固件区域
+ * 的加锁/解锁。初始化时根据当前 OTA 多重启动地址（256K/512K/1M，其中 1M 分支为
+ * B87 专属逻辑）计算需要锁定的 Flash 区域并上锁；OTA 擦除旧固件、写入新固件的
+ * 开始/结束事件中分别执行解锁/重新加锁，避免非 OTA 操作误写受保护区域。
  */
 _attribute_data_retention_ u16  flash_lockBlock_cmd = 0;
 void app_flash_protection_operation(u8 flash_op_evt, u32 op_addr_begin, u32 op_addr_end)
@@ -868,6 +914,10 @@ void app_flash_protection_operation(u8 flash_op_evt, u32 op_addr_begin, u32 op_a
  * @brief		This is main_loop function
  * @param[in]	none
  * @return      none
+ * 中文说明：应用主循环函数，由系统持续调用。当工程配置为 2.4G 私有协议模式
+ * （TEST_2P4G_MODE）且当前处于该模式时，运行 2.4G 私有协议主循环
+ * app_mainloop_2p4g()，否则运行 BLE SDK 主循环 blt_sdk_main_loop() 及电源管理
+ * blt_pm_proc()；此外还处理低电量检测、按键/键盘扫描等 UI 相关轮询任务。
  */
 _attribute_no_inline_ void main_loop(void)
 {

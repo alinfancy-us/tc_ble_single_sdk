@@ -21,6 +21,11 @@
  *          limitations under the License.
  *
  *******************************************************************************************************/
+/*
+ * 中文说明：本文件为 feature_phy_test 示例的功能配置文件，定义了 PHY 测试传输方式（2 线 UART/HCI
+ * over USB/HCI over UART）、UART 波特率与引脚、HCI 收发 FIFO 大小以及测试评估板型号等宏开关，
+ * 本测试模式下默认关闭低功耗（PM）。
+ */
 #pragma once
 
 #include "../feature_config.h"

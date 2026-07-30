@@ -21,6 +21,12 @@
  *          limitations under the License.
  *
  *******************************************************************************************************/
+/*
+ * 中文说明：
+ * 本文件实现 BLE Link Layer 隐私（LL Privacy）主机（Master）示例（feature_privacy_master）的
+ * 应用层初始化与主循环。包括扫描/连接/SMP 配对初始化、按键触发配对与解除配对、
+ * 以及主机端连接参数更新等主循环处理。具体 HCI/L2CAP 事件处理逻辑见 blm_host.c。
+ */
 #include "tl_common.h"
 #include "drivers.h"
 #include "stack/ble/ble.h"
@@ -54,6 +60,8 @@ MYFIFO_INIT(blt_txfifo, 40, 8);
 	 * @brief   Check changed key value.
 	 * @param   none.
 	 * @return  none.
+	 * 中文说明：检测按键变化，按下 KEY_PAIR 时置位 central_pairing_enable（触发手动配对），
+	 * 按下 KEY_UNPAIR 时置位 central_unpair_enable（触发解除配对），释放时清除对应标志。
 	 */
 	void key_change_proc(void)
 	{
@@ -105,6 +113,7 @@ MYFIFO_INIT(blt_txfifo, 40, 8);
 	 * @param[in]  p    - Pointer point to event parameter.
 	 * @param[in]  n    - the length of event parameter.
 	 * @return     none.
+	 * 中文说明：键盘任务处理函数，按固定周期（8ms）扫描按键，检测到变化后调用 key_change_proc。
 	 */
 	void proc_keyboard(u8 e, u8 *p, int n)
 	{
@@ -138,6 +147,7 @@ MYFIFO_INIT(blt_txfifo, 40, 8);
  * @param[in]  para - data pointer of event
  * @param[in]  n - data length of event
  * @return     0
+ * 中文说明：Host 事件回调，目前仅处理 GAP_EVT_SMP_PAIRING_SUCCESS 事件，若配对失败则打印日志。
  */
 int app_host_event_callback (u32 h, u8 *para, int n)
 {
@@ -167,6 +177,9 @@ int app_host_event_callback (u32 h, u8 *para, int n)
  * @brief		user initialization
  * @param[in]	none
  * @return      none
+ * 中文说明：用户初始化入口：初始化随机数、调试日志、Flash 参数、MAC 地址；完成 Controller
+ * （扫描/发起连接/连接/主机角色）与 Host（GAP/L2CAP/SMP）初始化，启用 Link Layer 本地 RPA
+ * （blc_ll_initPrivacyLocalRpa）以支持隐私地址功能，最后配置扫描参数并检查初始化结果。
  */
 void user_init(void)
 {
@@ -254,6 +267,8 @@ void user_init(void)
  * @brief		host pair or upair proc in main loop
  * @param[in]	none
  * @return      none
+ * 中文说明：主循环中处理解除配对请求：当 central_unpair_enable 置位且当前处于连接状态时，
+ * 主动断开连接并删除绑定信息；断开完成后恢复断开标志位。
  */
 void host_pair_unpair_proc(void)
 {
@@ -280,6 +295,8 @@ int main_idle_loop (void)
 {
 
 	////////////////////////////////////// BLE entry /////////////////////////////////
+	// 中文说明：主要空闲循环：驱动协议栈主循环、键盘扫描（可选）、配对/解除配对处理以及
+	// 待处理的主机端连接参数更新请求。
 	blt_sdk_main_loop();
 
 
@@ -303,6 +320,7 @@ int main_idle_loop (void)
  * @brief     BLE main loop
  * @param[in]  none.
  * @return     none.
+ * 中文说明：BLE 主循环，直接转发到 main_idle_loop 执行。
  */
 void main_loop(void)
 {

@@ -29,6 +29,14 @@
 
 #include "app_config.h"
 
+/*
+ * 中文说明：
+ * 本文件提供一个默认的 GATT 属性表（Attribute Table）实现，包含 GAP、GATT、
+ * 设备信息、HID（键盘/消费者控制）以及 Telink OTA 等常用 Service/Characteristic，
+ * 供功能测试工程在需要独立测试 ATT 层时快速搭建协议栈。整个文件由宏
+ * APP_DEFAULT_HID_BATTERY_OTA_ATTRIBUTE_TABLE 控制是否参与编译，默认关闭(0)，
+ * 因此当前不会被实际使用。文件内容为芯片无关的公共代码，不涉及具体芯片分支。
+ */
 
 #if (APP_DEFAULT_HID_BATTERY_OTA_ATTRIBUTE_TABLE)
 
@@ -429,6 +437,9 @@ static const attribute_t my_Attributes[] = {
  * @brief      Initialize the attribute table
  * @param[in]  none
  * @return     none
+ *
+ * 中文说明：将本文件中定义的默认属性表 my_Attributes 注册到协议栈，
+ * 使协议栈按该表向外提供 GAP/GATT/HID/Battery/OTA 等 Service。
  */
 void	my_att_init(void)
 {

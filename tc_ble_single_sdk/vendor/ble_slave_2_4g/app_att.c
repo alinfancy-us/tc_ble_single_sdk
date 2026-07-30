@@ -21,6 +21,9 @@
  *          limitations under the License.
  *
  *******************************************************************************************************/
+/* 中文说明：本文件定义 GATT 属性表（ATT Table），包含 GAP/GATT/设备信息/HID/电池（及可选 OTA）
+ * 等服务的 UUID、特征值与权限定义。本文件无芯片区分，对 B85/B87/TC321X 均适用。
+ */
 #include "tl_common.h"
 
 #include "stack/ble/ble.h"
@@ -438,6 +441,8 @@ static const attribute_t my_Attributes[] = {
  * @brief      Initialize the attribute table
  * @param[in]  none
  * @return     none
+ */
+/* 中文说明：将本文件中定义的 my_Attributes 属性表注册给协议栈，作为 GATT 服务的实际内容。
  */
 void	my_att_init(void)
 {

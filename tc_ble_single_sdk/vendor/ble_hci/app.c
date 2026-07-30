@@ -140,6 +140,10 @@ volatile u8 isUartTxDone = 1;
  * @param[in]	none
  * @return      0 for idle  else for busy
  */
+/* 中文说明：获取 MCU 与模块之间 UART 的忙碍状态。通过 GPIO_WAKEUP_MODULE 引脚判断
+ * MCU 侧是否正在收发数据，同时检查本地 UART 发送/接收 fifo 是否处理完毕，
+ * 两者只要有一个忙碍就认为整体处于忙碍状态（用于低功耗管理判断是否可以进入 suspend）。
+ */
 int app_module_busy ()
 {
 	mcu_uart_working = gpio_read(GPIO_WAKEUP_MODULE);  //mcu use GPIO_WAKEUP_MODULE to indicate the UART data transmission or receiving state
@@ -153,6 +157,9 @@ int app_module_busy ()
  * @param[in]	none
  * @return      none
  */
+/* 中文说明：退出低功耗 suspend 模式。拉高 GPIO_WAKEUP_MODULE（通知模块进入工作状态），
+ * 并禁止继续进入 suspend，同时记录唤醒时间戳 tick_wakeup。
+ */
 void app_suspend_exit ()
 {
 	GPIO_WAKEUP_MODULE_HIGH;  //module enter working state
@@ -165,6 +172,9 @@ void app_suspend_exit ()
  * @param[in]	none
  * @return      0 - forbidden enter suspend mode
  *              1 - allow enter suspend mode
+ */
+/* 中文说明：判断是否允许进入 suspend 模式。若 UART 仍忙（app_module_busy 返回非0），
+ * 则主动退出 suspend 并返回 0 表示禁止进入；否则返回 1 允许进入 suspend。
  */
 int app_suspend_enter ()
 {
@@ -180,6 +190,10 @@ int app_suspend_enter ()
  * @brief      power management code for application
  * @param[in]  none
  * @return     none
+ */
+/* 中文说明：应用层电源管理。当使能 BLE_APP_PM_ENABLE 且 UART 空闲时，设置允许进入
+ * suspend/deepsleep retention 的条件掩码，并以 GPIO_WAKEUP_MODULE 作为唤醒源；
+ * 超时（500ms）后拉低该引脚并清零唤醒时间戳。
  */
 void app_power_management ()
 {
@@ -212,6 +226,10 @@ void app_power_management ()
  * @param[in]	none
  * @return      0 is ok
  */
+/* 中文说明：处理从 UART 接收到的数据，作为 HCI 命令/数据上报给 Host/Master。
+ * 从 hci_rx_fifo 取出一包数据，第一个字节为长度，非零时调用 blc_hci_handler 交给
+ * 协议栈 HCI 模块处理，处理完成后弹出该包。
+ */
 int rx_from_uart_cb (void)//UART data send to Master,we will handler the data as CMD or DATA
 {
 	if(my_fifo_get(&hci_rx_fifo) == 0)
@@ -238,6 +256,9 @@ uart_data_t T_txdata_buf;
  * @param[in]	none
  * @return      0 is ok
  */
+/* 中文说明：将待发送数据从 hci_tx_fifo 取出，拷贝到发送缓冲区 T_txdata_buf，
+ * 并通过 DMA 方式启动 UART 发送；若上一次发送尚未完成（isUartTxDone==0）则本次不发送。
+ */
 int tx_to_uart_cb (void)
 {
 	if(hci_tx_fifo.wptr == hci_tx_fifo.rptr){
@@ -261,6 +282,15 @@ int tx_to_uart_cb (void)
  * @brief		user initialization when MCU power on or wake_up from deepSleep mode
  * @param[in]	none
  * @return      none
+ */
+/* 中文说明：上电/从深度睡眠唤醒后的初始化入口。主要完成：
+ * 1. 随机数发生器初始化（仅 B85/B87 需要，TC321X 无需）；
+ * 2. 调试日志/flash 容量/定制参数加载；
+ * 3. 初始化 MAC 地址、BLE 协议栈 Controller（基础 MCU、待机、广播/扩展广播、连接、从机角色）；
+ * 4. 初始化 Host 层 L2CAP；
+ * 5. 根据 HCI_ACCESS 选择 USB 或 UART 作为 HCI 传输接口并注册对应收发回调；
+ * 6. 若使能低功耗，初始化电源管理模块并配置唤醒源；
+ * 7. 最后检查协议栈初始化是否成功，失败则打印错误码并死循环。
  */
 void user_init_normal(void)
 {
@@ -389,6 +419,10 @@ void user_init_normal(void)
  * @brief     BLE main loop
  * @param[in]  none.
  * @return     none.
+ */
+/* 中文说明：BLE 主循环，在 while(1) 中被反复调用。先执行协议栈主循环
+ * blt_sdk_main_loop() 处理 BLE 事件/任务，再调用 app_power_management 处理
+ * 应用层的低功耗管理。
  */
 void main_loop(void)
 {

@@ -26,6 +26,12 @@
 
 #if (FEATURE_TEST_MODE == TEST_LL_PRIVACY_MASTER)
 
+/* 中文说明：本文件为“LL 隐私特性 - 主机（Master）角色”测试工程的应用配置文件。
+ * 配置项包括：Host 层 SMP 加密是否开启、对端/本地是否使用可解析私有地址(RPA)、
+ * 调试打印开关、EVK 板型选择（B85 对应 __PROJECT_8258_FEATURE_TEST__）、
+ * UI（按键/LED）以及系统时钟等。
+ */
+
 ///////////////////////// Feature Configuration////////////////////////////////////////////////
 #define BLE_HOST_SMP_ENABLE				                1 //Master SMP strongly recommended enabled
 

@@ -34,6 +34,11 @@ extern void host_att_set_current_readByTypeReq_uuid(u8 *uuid, u8 uuid_len);
 
 extern const u8 my_OtaUUID[16];
 
+/* 中文说明：本文件实现 Master 作为 OTA 主导方向时的固件推送流程（仅当宏 BLE_MASTER_OTA_ENABLE 开启时
+ * 编译生效）：根据按键触发进入 OTA、连接建立完成后查找从机 OTA 服务 handle、主循环中
+ * 驱动 OTA 进度（proc_ota）以及设置/上报 OTA 结果。
+ */
+
 
 int master_ota_test_mode = 0;
 

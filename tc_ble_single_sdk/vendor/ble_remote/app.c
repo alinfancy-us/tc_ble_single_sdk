@@ -36,6 +36,11 @@
 #include "app_audio.h"
 #include "application/audio/gl_audio.h"
 
+/* 中文说明：本文件为 BLE Remote（遥控器）工程的应用层主体实现，包括 MCU 上电/深度睡眠唤醒
+ * 后的 user_init 初始化（协议栈、按键、红外发射/学习、音频等子模块初始化）、BLE main_loop 主循环
+ * 以及电源管理、电量检测等应用层逻辑。具体各子功能的实现分布在 app_att.c/app_ui.c/app_audio.c/
+ * rc_ir.c/rc_ir_learn.c 中。
+ */
 
 
 #define 	ADV_IDLE_ENTER_DEEP_TIME			60  //60 s

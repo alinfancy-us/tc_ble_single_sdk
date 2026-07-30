@@ -24,6 +24,11 @@
 #ifndef APP_ATT_H_
 #define APP_ATT_H_
 
+/*
+ * 中文说明：本文件定义 GATT 属性表中各个句柄/特征値/描述符的句柄枚举（ATT_HANDLE），
+ * 以及属性表初始化函数声明。本文件与芯片型号无关。
+ */
+
 
 
 
@@ -137,6 +142,7 @@ typedef enum
  * @brief      Initialize the attribute table
  * @param[in]  none
  * @return     none
+ * 中文说明：初始化 GATT 属性表的函数声明。
  */
 void my_att_init(void);
 

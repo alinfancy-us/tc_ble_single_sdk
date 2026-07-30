@@ -29,6 +29,18 @@
 #include "app.h"
 #include "app_audio.h"
 
+/* 中文说明：本文件实现 KMA Dongle 的音频（麦克风）数据处理，根据 app_config.h 中的
+ * TL_AUDIO_MODE 宏在多种音频通道模式（ADPCM/GATT-Telink、ADPCM/GATT-Google、ADPCM/HID、
+ * SBC/HID、mSBC/HID 等，通过 #if/#elif 互斥分支实现，与芯片型号无关）之间选择编译对应的实现：
+ * - usb_endpoints_irq_handler(): USB 音频相关端点中断处理；
+ * - att_mic(): 处理从机通过 ATT 上报的麦克风数据；
+ * - app_audio_data(): 拷贝/暂存收到的音频数据包；
+ * - proc_audio(): 主循环中的音频处理任务（触发编码/搬运/USB 上报等）；
+ * - mic_packet_reset()/push_mic_packet(): 麦克风数据包缓冲区复位与入包；
+ * - usb_report_hid_mic(): 通过 USB HID 通道上报麦克风数据给主机 PC。
+ * 各分支功能一致，仅数据格式/传输通道不同，因此本文件中的注释仅在首个分支中给出，其余分支不重复注释。
+ */
+
 #if (TL_AUDIO_MODE == TL_AUDIO_DONGLE_ADPCM_GATT_TELINK)			//GATT Telink
 
 u8		att_mic_rcvd = 0;

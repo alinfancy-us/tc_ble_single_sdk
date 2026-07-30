@@ -31,6 +31,9 @@
 #ifndef SPP_H_
 #define SPP_H_
 
+/* 中文说明：本头文件声明 SPP（BLE 透传）模块对外接口，包括 0xFFxx 系列私有 HCI 命令字定义、
+ * 命令/事件的数据结构（spp_cmd_t / spp_event_t）以及命令处理、事件上报、UART 收发相关函数原型。
+ */
 
 #define SPP_CMD_SET_ADV_INTV								0xFF01
 #define SPP_CMD_SET_ADV_DATA								0xFF02

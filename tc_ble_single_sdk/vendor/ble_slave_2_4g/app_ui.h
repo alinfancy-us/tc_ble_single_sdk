@@ -26,6 +26,10 @@
 
 #include "app_config.h"
 
+/* 中文说明：本头文件声明 OTA 进入/结束回调注册接口（仅当 BLE_OTA_SERVER_ENABLE 开启时编译生效），
+ * 用于在进入/退出 OTA 模式时做 UI（如 LED 提示）等自定义处理。
+ */
+
 #if (BLE_OTA_SERVER_ENABLE)
 /**
  * @brief      this function is used to register the function for OTA start.

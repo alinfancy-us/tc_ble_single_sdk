@@ -35,6 +35,13 @@ extern void main_loop(void);
  * @param   none.
  * @return  none.
  */
+/* 中文说明：中断服务函数。
+ * 1. 先调用 irq_blt_sdk_handler() 处理 BLE 协议栈相关中断（连接、广播等）。
+ * 2. 当 HCI 通过 UART 传输（HCI_ACCESS==HCI_USE_UART）时，处理 UART 的
+ *    接收 DMA 中断、发送完成中断以及接收错误（校验位/停止位错误）中断。
+ * 3. 对于 B85 芯片（MCU_CORE_TYPE == MCU_CORE_825x），本文件中未特别区分
+ *    寄存器访问方式的分支即为 B85（及 B87 共用）路径，直接使用 reg_uart_status0/1。
+ */
 _attribute_ram_code_ void irq_handler(void)
 {
 	irq_blt_sdk_handler();
@@ -85,6 +92,17 @@ _attribute_ram_code_ void irq_handler(void)
  * @brief		This is main function
  * @param[in]	none
  * @return      none
+ */
+/* 中文说明：程序入口（必须运行在 RAM code 中）。
+ * 主要流程：
+ * 1. 若使能低功耗（BLE_APP_PM_ENABLE），选择内部 32K 晶振作为低功耗时钟源；
+ * 2. 唤醒 CPU 初始化：B85（MCU_CORE_825x）使用 cpu_wakeup_init() 无参版本，
+ *    B87/TC321X 需要传入 LDO 模式和晶振电容参数；
+ * 3. 初始化射频、GPIO、系统时钟；
+ * 4. 如果使能了看门狗模块，配置看门狗超时时间并启动；
+ * 5. 根据是否从 deep retention 唤醒，分别调用 user_init_deepRetn() 或
+ *    user_init_normal() 完成协议栈初始化；
+ * 6. 打开总中断，进入主循环，循环中喂狗并调用 main_loop() 处理协议栈事务。
  */
 _attribute_ram_code_ int main (void)    //must run in ramcode
 {

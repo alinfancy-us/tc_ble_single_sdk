@@ -23,6 +23,13 @@
  *******************************************************************************************************/
 #pragma once
 
+/* 中文说明：KMA Dongle 工程应用配置文件。核心配置包括：Host 层 SMP 加密与简易服务发现开关、
+ * Master OTA 使能、Flash 读写保护（生产前务必确认已启用）、调试通道（USB/UART）选择、
+ * EVK/Dongle 板型选择（B85 对应 __PROJECT_8258_MASTER_KMA_DONGLE__）、按键/LED/音频 UI 使能、
+ * 麦克风采样参数与音频传输模式（ADPCM/SBC/mSBC 等）、USB 复合设备（打印机/鼠标/键盘/HID）配置，
+ * 以及系统时钟、看门狗等。
+ */
+
 #include  "application/audio/audio_common.h"
 
 

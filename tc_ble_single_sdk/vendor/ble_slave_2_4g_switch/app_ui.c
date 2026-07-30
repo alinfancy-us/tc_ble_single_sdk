@@ -32,6 +32,14 @@
 #include "app_att.h"
 #include "app_ui.h"
 
+/*
+ * 中文说明：
+ * 本文件实现应用层的人机交互(UI)逻辑，包括 OTA 进入/结束回调、键盘矩阵扫描
+ * 变化处理以及独立按键检测与防抖处理。根据 app_config.h 中
+ * UI_KEYBOARD_ENABLE / UI_BUTTON_ENABLE 的配置二选一启用相应代码分支，
+ * 检测到按键事件后通过 GATT Notify 推送 HID 报告给主机。本文件与芯片型号无关。
+ */
+
 extern u32  latest_user_event_tick;
 #if(TEST_2P4G_MODE)
 u8      reboot_flag_t=0;
@@ -41,6 +49,8 @@ u8      reboot_flag_t=0;
  * @brief      this function is used to register the function for OTA start.
  * @param[in]  none
  * @return     none
+ * 中文说明：OTA 开始时的回调函数，标记 ota_is_working 为真并刷新最后用户事件
+ * 时间戳，供电源管理模块避免在 OTA 进行中进入深度睡眠。
  */
 void app_enter_ota_mode(void)
 {
@@ -54,6 +64,8 @@ void app_enter_ota_mode(void)
  * @brief      this function is used to register the function for OTA end.
  * @param[in]  result - OTA result
  * @return     none
+ * 中文说明：OTA 结束时的回调函数。仅在调试开关打开时通过蓝色 LED 闪烁提示
+ * OTA 成功/失败，默认情况下该调试代码被 #if(0 ...) 关闭不执行。
  */
 void app_ota_end_result(int result)
 {
@@ -104,6 +116,11 @@ _attribute_data_retention_	static u32 keyScanTick = 0;
  * @brief		this function is used to process keyboard matrix status change.
  * @param[in]	none
  * @return      none
+ * 中文说明：处理键盘矩阵状态变化。刷新最后用户事件时间戳；当只有单键按下时，
+ * 区分音量键(CR_VOL_UP/DN)与普通键盘按键，分别通过 HID 消费电子报告/键盘报告
+ * 推送 Notify 给主机；当所有按键释放时，推送对应的释放(数值为0)报告。
+ * 当 TEST_2P4G_MODE 使能时，每次单键按下会翻转工作模式标志位，释放时若检测到标志
+ * 与当前工作模式不一致则置位重启标志，切换 BLE/2.4G 私有协议工作模式。
  */
 void key_change_proc(void)
 {
@@ -209,6 +226,8 @@ void key_change_proc(void)
  * @param[in]  p - data pointer of event
  * @param[in]  n - data length of event
  * @return     none
+ * 中文说明：键盘扫描入口函数，每 8ms 执行一次矩阵扫描，若检测到按键变化
+ * 则调用 key_change_proc 处理具体的按键/释放逻辑。
  */
 void proc_keyboard(u8 e, u8 *p, int n)
 {
@@ -278,6 +297,8 @@ void proc_keyboard(u8 e, u8 *p, int n)
 	 * @brief      Debounce processing during button detection
 	 * @param[in]  btn_v - vc_event.btn_press
 	 * @return     1:Detect new button;0:Button isn't changed
+	 * 中文说明：按键防抖处理。将最新采样值推入 4 帧历史缓冲，只有连续三次采样
+	 * 一致且与上一次确认的稳定值不同时，才判定为一次有效的按键状态变化。
 	 */
 	u8 btn_debounce_filter(u8 *btn_v)
 	{
@@ -302,6 +323,8 @@ void proc_keyboard(u8 e, u8 *p, int n)
 	 * @brief      This function is key detection processing
 	 * @param[in]  read_key - Decide whether to return the key detection result
 	 * @return     1:Detect new button;0:Button isn't changed
+	 * 中文说明：读取所有按键 GPIO 电平得到当前按键位图，经防抖处理后，若
+	 * read_key 为真且检测到变化，则填充当前按下的按键列表并返回 1。
 	 */
 	u8 vc_detect_button(int read_key)
 	{
@@ -338,6 +361,8 @@ void proc_keyboard(u8 e, u8 *p, int n)
 	 * @param[in]	p - event callback data pointer for when this function is triggered by LinkLayer event
 	 * @param[in]	n - event callback data length when this function is triggered by LinkLayer event
 	 * @return      none
+	 * 中文说明：独立按键检测处理函数。检测到按键变化后，单键按下时发送
+	 * 对应的音量加/减 HID 消费电子报告，释放时发送数值为 0 的释放报告。
 	 */
 	void proc_button(u8 e, u8 *p, int n)
 	{

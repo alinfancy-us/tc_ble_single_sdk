@@ -21,6 +21,12 @@
  *          limitations under the License.
  *
  *******************************************************************************************************/
+/*
+ * 中文说明：
+ * 本文件包含 IRQ 中断处理函数 irq_handler 与主函数 main，是 ble_module 示例工程的程序入口，
+ * 负责底层初始化、用户初始化分发及主循环调度；其中涉及部分 B85/B87/TC321X 平台差异分支，
+ * 本次注释仅针对 B85(825x) 分支及平台无关的公共逻辑，B87/TC321X 专属分支保持原样。
+ */
 #include "tl_common.h"
 #include "drivers.h"
 #include "stack/ble/ble.h"
@@ -36,6 +42,10 @@ extern my_fifo_t spp_rx_fifo;
  * @brief   IRQ handler
  * @param   none.
  * @return  none.
+ *
+ * 中文说明：BLE IRQ 中断处理函数。除调用协议栈中断处理 irq_blt_sdk_handler 外，还处理：
+ * UART 发送完成中断标志(TC321X 与非 TC321X 走不同寄存器 API，B85 走非 TC321X 分支)、
+ * UART RX DMA 完成后切换下一个接收 FIFO 缓冲区地址，以及 UART 校验/停止位错误清除。
  */
 _attribute_ram_code_ void irq_handler(void)
 {
@@ -77,6 +87,10 @@ _attribute_ram_code_ void irq_handler(void)
  * @brief		This is main function
  * @param[in]	none
  * @return      none
+ *
+ * 中文说明：程序入口。完成 32K 晶振选择、MCU 唤醒初始化(B85 与其它芯片调用参数不同)、RF 与
+ * GPIO/时钟初始化，并依据是否为深度睡眠保留唤醒调用 user_init_deepRetn 或 user_init_normal，
+ * 随后使能中断并进入 while(1) 主循环调用 main_loop()(可选看门狗喂狗)。
  */
 _attribute_ram_code_ int main (void)    //must run in ramcode
 {

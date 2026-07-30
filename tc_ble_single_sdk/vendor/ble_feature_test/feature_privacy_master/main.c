@@ -34,6 +34,7 @@
  * @param   none.
  * @return  none.
  */
+/* 中文说明：中断服务函数，转发给协议栈统一的中断处理入口 irq_blt_sdk_handler()。 */
 _attribute_ram_code_ void irq_handler(void)
 {
 	irq_blt_sdk_handler();
@@ -44,6 +45,10 @@ _attribute_ram_code_ void irq_handler(void)
  * @brief		This is main function
  * @param[in]	none
  * @return      none
+ */
+/* 中文说明：程序入口。完成 CPU 唤醒初始化（B85 使用 cpu_wakeup_init() 无参版本）、
+ * 系统时钟与 GPIO 初始化、射频初始化，随后调用 user_init() 完成协议栈及本特性
+ * （LL 隐私 - 主机角色）初始化，最后进入 main_loop() 主循环。
  */
 int main (void)
 {

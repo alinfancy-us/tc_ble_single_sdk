@@ -31,6 +31,11 @@
 
 #if (REMOTE_IR_ENABLE)
 
+/* 中文说明：本文件实现基于 NEC 协议的红外发射功能：根据按键将自定义码值组包为 NEC 帧格式，
+ * 通过 PWM 载波 + DMA FIFO 方式连续发送引导码/数据码，并在长按时自动发送重复码。仅当宏
+ * REMOTE_IR_ENABLE 开启时编译生效，与芯片型号无关。
+ */
+
 
 #define ADD_REPEAT_ONE_BY_ONE			0
 

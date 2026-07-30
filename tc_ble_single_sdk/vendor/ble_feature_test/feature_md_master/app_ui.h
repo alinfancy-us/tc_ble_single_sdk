@@ -29,6 +29,11 @@
 
 #if (FEATURE_TEST_MODE == TEST_MD_MASTER)
 
+/*
+ * 中文说明：本头文件对应 feature_md_master/app_ui.c，对外声明键盘扫描处理入口及
+ * 按键未释放标志变量。
+ */
+
 #include "app_config.h"
 
 

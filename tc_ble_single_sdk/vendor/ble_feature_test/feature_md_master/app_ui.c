@@ -25,6 +25,11 @@
 
 #if (FEATURE_TEST_MODE == TEST_MD_MASTER)
 
+/*
+ * 中文说明：本文件实现 feature_md_master 示例的按键 UI 处理，扫描矩阵键盘并根据
+ * 按下的按键（配对/解除配对）设置对应标志供主循环使用。
+ */
+
 #include "tl_common.h"
 #include "drivers.h"
 #include "stack/ble/ble.h"
@@ -58,6 +63,8 @@ _attribute_data_retention_	static u32 keyScanTick = 0;
  * @brief		this function is used to process keyboard matrix status change.
  * @param[in]	none
  * @return      none
+ * 中文说明：处理按键矩阵状态变化。多键同时按下时不处理；单键按下时根据
+ * BTN_PAIR/BTN_UNPAIR 设置配对/解除配对使能标志；按键弹起（cnt==0）时清除对应标志。
  */
 void key_change_proc(void)
 {
@@ -105,6 +112,8 @@ void key_change_proc(void)
  * @param[in]  p - data pointer of event
  * @param[in]  n - data length of event
  * @return     none
+ * 中文说明：按定时间隔（8ms）扫描键盘矩阵，若检测到按键变化则调用
+ * key_change_proc 进行处理。
  */
 void proc_keyboard(u8 e, u8 *p, int n)
 {

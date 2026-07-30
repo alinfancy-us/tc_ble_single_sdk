@@ -28,6 +28,11 @@
 
 #if (FEATURE_TEST_MODE == TEST_MD_MASTER)
 
+/*
+ * 中文说明：本头文件对应 feature_md_master/blm_host.c，对外声明 Host 层事件回调
+ * 函数与连接/配对相关的全局状态变量。
+ */
+
 
 int controller_event_callback (u32 h, u8 *p, int n);
 int app_l2cap_handler (u16 conn_handle, u8 *raw_pkt);

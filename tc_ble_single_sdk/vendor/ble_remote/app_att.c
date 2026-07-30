@@ -30,6 +30,11 @@
 #include "application/audio/audio_config.h"
 #include "app_audio.h"
 
+/* 中文说明：本文件实现 BLE Remote 的 GATT 属性表（my_att_init 等）与连接参数结构定义，
+ * 包含 GAP/GATT/设备信息/HID/电池/OTA/音频等各项服务的属性声明与读写回调绑定，
+ * 具体句柄顺序与 app_att.h 中的 ATT_HANDLE 枚举一致。
+ */
+
 typedef struct
 {
   /** Minimum value for the connection event (interval. 0x0006 - 0x0C80 * 1.25 ms) */

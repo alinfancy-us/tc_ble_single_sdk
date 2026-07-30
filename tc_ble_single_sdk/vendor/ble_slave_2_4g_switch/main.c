@@ -27,11 +27,21 @@
 #include "app.h"
 #include "./2_4g_test/2p4g_common.h"
 
+/*
+ * 中文说明：
+ * 本文件为程序入口文件，包含中断处理入口和 main() 主函数。main() 中完成
+ * 时钟/电源管理相关硬件初始化（区分 B85/B87/TC321X 不同初始化方式），
+ * 判断是否为深度睡眠 retention 唤醒并调用对应的用户初始化函数，最后进入
+ * 主循环。当工程为 2.4G 私有协议测试模式时，会根据 rf_working_mode
+ * 切换 BLE 或 2.4G 私有协议的初始化与中断处理路径。
+ */
 
 /**
  * @brief   IRQ handler
  * @param   none.
  * @return  none.
+ * 中文说明：系统中断处理入口。当 TEST_2P4G_MODE 使能且当前为 2.4G 私有协议
+ * 工作模式时调用 2.4G 中断处理函数，否则调用 BLE 协议栈的中断处理函数。
  */
 _attribute_ram_code_ void irq_handler(void)
 {
@@ -53,6 +63,11 @@ _attribute_ram_code_ void irq_handler(void)
  * @brief		This is main function
  * @param[in]	none
  * @return      none
+ * 中文说明：程序主函数，必须运行在 RAM 中。完成时钟源、唤醒初始化、GPIO、
+ * 时钟、看门狗等基础硬件初始化，判断是否为深度睡眠 retention 唤醒后调用
+ * user_init_deepRetn 或 user_init_normal 进行用户初始化，最终进入 while(1)
+ * 主循环循环调用 main_loop()。B85(MCU_CORE_825x) 使用 cpu_wakeup_init() 无参数
+ * 版本进行唤醒初始化。
  */
 _attribute_ram_code_ int main (void)    //must run in ramcode
 {

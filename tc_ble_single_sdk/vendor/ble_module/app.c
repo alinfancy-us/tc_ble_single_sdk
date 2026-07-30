@@ -21,6 +21,13 @@
  *          limitations under the License.
  *
  *******************************************************************************************************/
+/*
+ * 中文说明：
+ * 本文件为 Telink BLE "透传模块(ble_module)" 应用示例的主体实现，包含用户初始化(user_init_normal/user_init_deepRetn)、
+ * BLE 广播/SPP 串口/OTA 相关模块初始化、Flash 读写保护、低功耗电源管理以及主循环 main_loop 等。
+ * 该 vendor 工程可运行于 B85(825x)/B87(827x)/TC321X 等多个芯片平台，通过 MCU_CORE_TYPE 等宏区分平台差异；
+ * 本次审查/注释仅关注 B85(825x) 分支及芯片无关的公共逻辑，B87/TC321X 专属分支保持原样未作修改。
+ */
 #include "tl_common.h"
 #include "drivers.h"
 #include "stack/ble/ble.h"
@@ -143,6 +150,9 @@ _attribute_data_retention_ u8 conn_update_cnt;
  * @param[in]	result - connect parameter update response result
  * @return      0    - success
  *              else - reserved
+ *
+ * 中文说明：连接参数更新响应的回调函数。具体处理逻辑当前整体被 #if 0 禁用（仅作示例保留，未参与编译），
+ * 若启用，将根据对端(Host)是否接受本次连接参数更新请求，决定是否再次发起新的连接参数更新请求。
  */
 int app_conn_param_update_response(u8 id, u16  result)
 {
@@ -187,6 +197,9 @@ int app_conn_param_update_response(u8 id, u16  result)
  * @brief		callback function of ota start
  * @param[in]	none
  * @return      none
+ *
+ * 中文说明：OTA 开始时的回调函数。设置 OTA 超时时间为 15 秒，若使能 LED 指示(UI_LED_ENABLE)，
+ * 则点亮红色 LED 提示设备已进入 OTA 升级模式。
  */
 void entry_ota_mode(void)
 {
@@ -202,6 +215,9 @@ void entry_ota_mode(void)
  * @brief		callback function of ota result
  * @param[in]	none
  * @return      none
+ *
+ * 中文说明：OTA 结果回调函数。OTA 成功时闪烁红色 LED 提示用户；OTA 失败分支下的死循环调试代码
+ * 默认被 #if 0 禁用（仅供调试参考，不会执行）。
  */
 void show_ota_result(int result)
 {
@@ -266,6 +282,10 @@ _attribute_data_retention_	u32 module_wakeup_module_tick;
  * @brief		obtain uart working status
  * @param[in]	none
  * @return      0 for idle  else for busy
+ *
+ * 中文说明：读取 GPIO_WAKEUP_MODULE 电平判断 MCU 侧串口通信状态(mcu_uart_working)，
+ * 并结合模块自身 UART 收发 FIFO 是否处理完毕(module_uart_working)，综合得到模块是否繁忙(module_task_busy)，
+ * 供低功耗挂起判断使用。
  */
 int app_module_busy ()
 {
@@ -279,6 +299,9 @@ int app_module_busy ()
  * @brief		exit suspend mode
  * @param[in]	none
  * @return      none
+ *
+ * 中文说明：退出低功耗挂起状态：拉高 GPIO_WAKEUP_MODULE、禁止再次进入 suspend、
+ * 记录本次唤醒时间戳(tick_wakeup)，并恢复 RF 发射功率等级。
  */
 void app_suspend_exit ()
 {
@@ -293,6 +316,9 @@ void app_suspend_exit ()
  * @param[in]	none
  * @return      0 - forbidden enter suspend mode
  *              1 - allow enter suspend mode
+ *
+ * 中文说明：判断当前是否允许进入低功耗挂起模式。若模块正忙(app_module_busy 返回非0)，
+ * 则调用 app_suspend_exit 退出挂起流程并返回 0(禁止进入)；否则返回 1(允许进入)。
  */
 int app_suspend_enter ()
 {
@@ -308,6 +334,10 @@ int app_suspend_enter ()
  * @brief      power management code for application
  * @param[in]  none
  * @return     none
+ *
+ * 中文说明：应用层电源管理主函数。当 UART 发送数据完成后拉低 GPIO_WAKEUP_MCU 通知 MCU；
+ * 根据模块是否繁忙及唤醒计时(tick_wakeup)决定设置 suspend 掩码(可选深度睡眠数据保留模式)及唤醒源，
+ * 并在超过 500 个时钟单位后拉低 GPIO_WAKEUP_MODULE、清除唤醒标记。
  */
 void app_power_management ()
 {
@@ -354,6 +384,9 @@ void app_power_management ()
  * @brief		callback function of adjust whether allow enter to pm or not
  * @param[in]	none
  * @return      0 forbidden enter cpu_sleep_wakeup, 1 allow enter cpu_sleep_wakeup
+ *
+ * 中文说明：低电量检测时判断是否允许进入低功耗流程。GPIO_WAKEUP_MODULE 为低电平(无通信需求)时，
+ * 置位低电量标记(LOW_BATT_FLG)并允许进入 cpu_sleep_wakeup；否则清除该标记并禁止进入。
  */
 int app_suspend_enter_low_battery (void)
 {
@@ -373,6 +406,12 @@ int app_suspend_enter_low_battery (void)
  * @brief		user initialization when MCU power on or wake_up from deepSleep mode
  * @param[in]	none
  * @return      none
+ *
+ * 中文说明：上电或从深度睡眠(非保留模式)唤醒后的用户初始化函数。主要流程包括：随机数发生器初始化(B85/B87)、
+ * 调试打印初始化、Flash 容量自适应扇区配置、加载定制参数、低电量检测、Flash 保护初始化、
+ * BLE 协议栈(Controller+Host)初始化、GATT 属性表与 MTU 配置、SMP 安全初始化、广播数据/参数配置与使能、
+ * SPP 串口(UART+DMA)初始化、电源管理(suspend/deepsleep)配置以及 OTA 服务初始化。
+ * B85(825x) 分支：随机数发生器初始化与其一致；UART 收尾的 uart_clr_tx_done() 调用位于非 TC321X 分支下执行。
  */
 void user_init_normal(void)
 {
@@ -594,6 +633,10 @@ void user_init_normal(void)
  * @brief		user initialization when MCU wake_up from deepSleep_retention mode
  * @param[in]	none
  * @return      none
+ *
+ * 中文说明：从深度睡眠保留(deepSleep retention)模式唤醒后的用户初始化函数，仅在 PM_DEEPSLEEP_RETENTION_ENABLE
+ * 使能时执行：恢复定制参数与协议栈保留状态、重新初始化 SPP 串口(UART+DMA)相关寄存器，
+ * 并重新配置 GPIO_WAKEUP_MODULE 唤醒源。B85 与 B87 走 uart_clr_tx_done() 分支(非 TC321X)。
  */
 _attribute_ram_code_ void user_init_deepRetn(void)
 {
@@ -672,6 +715,10 @@ _attribute_ram_code_ void user_init_deepRetn(void)
  * 			   e.g. if we write flash sector from 0x10000 to 0x20000, actual operating flash address is 0x10000 ~ 0x1FFFF
  * 			   		but we use [0x10000, 0x20000):  op_addr_begin = 0x10000, op_addr_end = 0x20000
  * @return     none
+ *
+ * 中文说明：处理应用层与协议栈(OTA)对 Flash 的加锁/解锁操作。应用初始化事件中，根据当前使用的 OTA
+ * 多重启动地址计算需要锁定的 Flash 区域(B85/B87 共用 256K/512K 档位，1M 档位仅 B87 分支支持)；
+ * OTA 擦除旧固件、写入新固件的起始/结束事件中，分别执行对应的解锁与恢复加锁操作。
  */
 _attribute_data_retention_ u16  flash_lockBlock_cmd = 0;
 void app_flash_protection_operation(u8 flash_op_evt, u32 op_addr_begin, u32 op_addr_end)
@@ -770,6 +817,10 @@ void app_flash_protection_operation(u8 flash_op_evt, u32 op_addr_begin, u32 op_a
  * @brief     BLE main loop
  * @param[in]  none.
  * @return     none.
+ *
+ * 中文说明：BLE 主循环函数。驱动协议栈主循环 blt_sdk_main_loop()；按 500ms 周期执行一次低电量检测
+ * (若 APP_BATT_CHECK_ENABLE 使能)；执行应用层电源管理 app_power_management()；
+ * 最后处理 SPP 模块重启流程 spp_restart_proc()。
  */
 void main_loop(void)
 {

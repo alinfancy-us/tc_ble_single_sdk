@@ -26,6 +26,14 @@
 
 #include "app_config.h"
 
+/*
+ * 中文说明：
+ * 本头文件定义了 default_att.c 中默认属性表使用的 ATT Handle 枚举
+ * （GAP/GATT/设备信息/HID/Battery/OTA 各属性句柄），并声明了属性表
+ * 初始化函数 my_att_init()。仅在 APP_DEFAULT_HID_BATTERY_OTA_ATTRIBUTE_TABLE
+ * 宏打开时生效，为芯片无关的公共声明文件。
+ */
+
 #ifndef APP_DEFAULT_HID_BATTERY_OTA_ATTRIBUTE_TABLE
 #define APP_DEFAULT_HID_BATTERY_OTA_ATTRIBUTE_TABLE        0
 #endif
@@ -144,6 +152,8 @@ typedef enum
  * @brief      Initialize the attribute table
  * @param[in]  none
  * @return     none
+ *
+ * 中文说明：初始化并注册默认属性表，声明见 default_att.c。
  */
 void my_att_init(void);
 

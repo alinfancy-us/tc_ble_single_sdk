@@ -21,6 +21,13 @@
  *          limitations under the License.
  *
  *******************************************************************************************************/
+/*
+ * 中文说明：
+ * 本文件为程序入口文件，负责芯片时钟/GPIO/射频初始化、USB 初始化、
+ * 调用 user_init 完成应用层初始化，然后进入死循环调度 main_loop。
+ * B85(MCU_CORE_825x) 与 B87(MCU_CORE_827x) 在 cpu_wakeup_init 调用参数上存在差异，
+ * 其余逻辑两者共用。
+ */
 #include "tl_common.h"
 #include "drivers.h"
 #include "stack/ble/ble.h"
@@ -33,6 +40,8 @@
  * @brief   IRQ handler
  * @param   none.
  * @return  none.
+ * 中文：中断服务函数。先交由 BLE 协议栈处理其自身中断，若使能音频功能
+ * (UI_AUDIO_ENABLE) 且触发 IRQ4 中断，则调用 USB 端点中断处理函数。
  */
 _attribute_ram_code_ void irq_handler(void)
 {
@@ -52,6 +61,9 @@ _attribute_ram_code_ void irq_handler(void)
  * @brief		This is main function
  * @param[in]	none
  * @return      none
+ * 中文：程序入口。完成 CPU 唤醒初始化（B85 分支：cpu_wakeup_init() 无参数调用）、
+ * 系统时钟初始化、GPIO 初始化、射频初始化、USB 初始化，然后调用 user_init 完成
+ * 应用层初始化，最后进入主循环，循环内按需清看门狗并调用 main_loop。
  */
 int main (void)
 {

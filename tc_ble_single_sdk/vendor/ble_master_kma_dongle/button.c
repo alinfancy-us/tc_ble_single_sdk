@@ -21,6 +21,11 @@
  *          limitations under the License.
  *
  *******************************************************************************************************/
+/*
+ * 中文说明：
+ * 本文件实现按键检测与防抖，用于触发配对/解配对及 OTA 模式切换。
+ * 仅在 UI_BUTTON_ENABLE 使能时编译，与芯片型号无关。
+ */
 #include "tl_common.h"
 #include "drivers.h"
 
@@ -67,6 +72,8 @@
 	 * @param[in]  btn_v - the pointer point to the button press value
 	 * @return     1 - key change press effect
 	 *             0 - key change press no effect
+	 * 中文：按键去抖函数。将本次按键值写入历史环形缓冲区，当连续 3 次
+	 * 采样值相同且与上一次稳定值不同时，才认为按键状态发生有效变化。
 	 */
 	u8 btn_debounce_filter(u8 *btn_v)
 	{
@@ -92,6 +99,8 @@
 	 * @param[in]  read_key - enable or disable store key value in buffer
 	 * @return     1 - key change press or release
 	 *             0 - key no change
+	 * 中文：读取所有按键 GPIO 电平得到按下位图，经过去抖处理后，若状态发生变化
+	 * 且 read_key 为真，则将变化的按键映射为对应的 keycode 写入 vc_event。
 	 */
 	u8 vc_detect_button(int read_key)
 	{
@@ -125,6 +134,10 @@
 	 * @brief		this function is used to detect if button pressed or released.
 	 * @param[in]	none
 	 * @return      none
+	 * 中文：主循环中按键处理入口。检测到按键变化后，单键按下分别触发
+	 * 配对使能（BTN_PAIR）或解配对使能（BTN_UNPAIR）标志；若使能了 OTA
+	 * （BLE_MASTER_OTA_ENABLE），连续多次单独按下同一键可进入 OTA 测试模式；
+	 * 键释放时清除对应使能标志并在 OTA 模式下触发 OTA 启动。
 	 */
 	void proc_button(void)
 	{

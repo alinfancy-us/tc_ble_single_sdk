@@ -34,6 +34,12 @@
 #include "application/audio/tl_audio.h"
 #include "app_audio.h"
 
+/* 中文说明：本文件实现 KMA Dongle 作为 BLE Master（中心设备）时的 Host 层核心业务：
+ * 处理扫描到的广播包（blm_le_adv_report_event_handle）并发起连接、连接建立/断开事件处理、
+ * 连接参数/PHY 更新完成事件处理、HCI 控制器事件总回调 controller_event_callback()、
+ * 主循环中连接参数更新处理 host_update_conn_proc()，以及 L2CAP 数据包分发 app_l2cap_handler()。
+ */
+
 
 extern u8 read_by_type_req_uuidLen;
 extern u8 read_by_type_req_uuid[16];

@@ -26,6 +26,11 @@
 
 #include "app_config.h"
 
+/*
+ * 中文说明：app_ui.c 的头文件，声明 OTA 起止回调、键盘扫描处理函数与按键检测处理函数
+ * 等对外接口，具体启用哪部分接口由 app_config.h 中的功能宏决定。
+ */
+
 extern u8       reboot_flag_t;
 
 #if (BLE_OTA_SERVER_ENABLE)

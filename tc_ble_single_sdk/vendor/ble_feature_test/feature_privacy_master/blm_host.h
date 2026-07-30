@@ -26,6 +26,11 @@
 
 #if (FEATURE_TEST_MODE == TEST_LL_PRIVACY_MASTER)
 
+/* 中文说明：本文件声明 Host 层（GAP/L2CAP/SMP）相关回调与处理函数原型，
+ * 用于 Master 角色下处理控制器事件、L2CAP 数据包、SMP 配对完成、扫描参数配置
+ * 以及连接参数更新处理等逻辑，配合 blm_host.c 实现主机侧业务。
+ */
+
 /**
  * @brief      callback function of HCI Controller Event
  * @param[in]  h - HCI Event type

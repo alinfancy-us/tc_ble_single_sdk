@@ -24,6 +24,9 @@
 #ifndef APP_ATT_H_
 #define APP_ATT_H_
 
+/* 中文说明：本头文件定义 BLE 从机的 GATT 属性表句柄枚举（ATT_HANDLE），涵盖 GAP/GATT/设备信息/
+ * HID/电池/OTA 等服务的各属性句柄顺序。
+ */
 
 
 

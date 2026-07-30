@@ -21,6 +21,10 @@
  *          limitations under the License.
  *
  *******************************************************************************************************/
+/*
+ * 中文说明：本文件为 feature_phy_conn 示例的程序入口，完成 MCU 唤醒/上电初始化（时钟、GPIO、RF），
+ * 并根据是否为深度睡眠 retention 唤醒选择调用 user_init_normal 或 user_init_deepRetn，最后进入 main_loop 循环。
+ */
 #include "tl_common.h"
 #include "drivers.h"
 #include "stack/ble/ble.h"
@@ -33,6 +37,7 @@
  * @brief   IRQ handler
  * @param   none.
  * @return  none.
+ * 中文说明：中断服务函数，转发给 BLE 协议栈的中断处理入口。
  */
 _attribute_ram_code_ void irq_handler(void)
 {
@@ -44,6 +49,8 @@ _attribute_ram_code_ void irq_handler(void)
  * @brief		This is main function
  * @param[in]	none
  * @return      none
+ * 中文说明：主函数，完成时钟源选择、CPU 唤醒初始化、RF/GPIO/时钟初始化，
+ * 根据是否深度睡眠 retention 唤醒分支调用对应初始化函数，最后开启中断并进入主循环。
  */
 _attribute_ram_code_ int main (void)    //must run in ramcode
 {

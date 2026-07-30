@@ -29,11 +29,17 @@
 #include "stack/ble/ble.h"
 #include "app.h"
 
+/*
+ * 中文说明：本文件为 feature_md_master 示例的程序入口，完成时钟/GPIO/射频硬件
+ * 初始化后调用 user_init 并进入 BLE 主循环。
+ */
+
 
 /**
  * @brief   IRQ handler
  * @param   none.
  * @return  none.
+ * 中文说明：中断入口，转发给 BLE 协议栈的中断处理函数。
  */
 _attribute_ram_code_ void irq_handler(void)
 {
@@ -45,6 +51,9 @@ _attribute_ram_code_ void irq_handler(void)
  * @brief		This is main function
  * @param[in]	none
  * @return      none
+ * 中文说明：主函数。根据芯片型号（B85 使用默认参数，其他芯片使用指定时钟模式/
+ * 电容配置）完成 CPU 唤醒初始化、时钟、GPIO 与射频初始化，然后调用 user_init
+ * 并进入主循环。
  */
 int main (void)
 {

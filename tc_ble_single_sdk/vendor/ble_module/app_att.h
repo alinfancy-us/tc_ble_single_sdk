@@ -21,6 +21,10 @@
  *          limitations under the License.
  *
  *******************************************************************************************************/
+/*
+ * 中文说明：
+ * 本头文件定义 GATT 属性句柄(handle)枚举 ATT_HANDLE 以及属性表初始化函数声明。
+ */
 #ifndef APP_ATT_H_
 #define APP_ATT_H_
 
@@ -92,6 +96,8 @@ typedef enum
  * @brief      Initialize the attribute table
  * @param[in]  none
  * @return     none
+ *
+ * 中文：GATT 属性表初始化入口，实现见 app_att.c。
  */
 void my_att_init(void);
 

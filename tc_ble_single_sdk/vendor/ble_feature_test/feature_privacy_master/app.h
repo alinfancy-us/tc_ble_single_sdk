@@ -27,6 +27,10 @@
 
 #if (FEATURE_TEST_MODE == TEST_LL_PRIVACY_MASTER)
 
+/* 中文说明：本文件为“LL 隐私特性 - 主机（Master）角色”测试工程的应用层对外接口声明，
+ * 仅当 FEATURE_TEST_MODE == TEST_LL_PRIVACY_MASTER 时编译生效。声明用户初始化、
+ * 主循环及空闲循环函数原型。
+ */
 
 /**
  * @brief		user initialization

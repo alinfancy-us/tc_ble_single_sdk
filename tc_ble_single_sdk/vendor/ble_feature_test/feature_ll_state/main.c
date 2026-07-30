@@ -26,6 +26,12 @@
 #include "stack/ble/ble.h"
 #include "app.h"
 
+/*
+ * 中文说明：本文件为 feature_ll_state 示例的程序入口，完成中断入口、时钟/GPIO/射频
+ * 硬件初始化，并根据是否为 DeepSleep Retention 唤醒选择调用不同的用户初始化函数，
+ * 最后进入 BLE 主循环。
+ */
+
 
 #if (FEATURE_TEST_MODE == TEST_ADVERTISING_ONLY || FEATURE_TEST_MODE == TEST_SCANNING_ONLY || FEATURE_TEST_MODE == TEST_ADVERTISING_IN_CONN_SLAVE_ROLE || \
 	FEATURE_TEST_MODE == TEST_SCANNING_IN_ADV_AND_CONN_SLAVE_ROLE || FEATURE_TEST_MODE == TEST_ADVERTISING_SCANNING_IN_CONN_SLAVE_ROLE)
@@ -34,6 +40,7 @@
  * @brief   IRQ handler
  * @param   none.
  * @return  none.
+ * 中文说明：中断入口，转发给 BLE 协议栈的中断处理函数。
  */
 _attribute_ram_code_ void irq_handler(void)
 {
@@ -45,6 +52,10 @@ _attribute_ram_code_ void irq_handler(void)
  * @brief		This is main function
  * @param[in]	none
  * @return      none
+ * 中文说明：主函数，必须运行在 RAM 代码中。依次选择 32K 时钟源、
+ * 根据芯片型号（B85 使用默认参数，其他芯片使用指定时钟模式/电容配置）完成 CPU
+ * 唤醒初始化，判断是否为 DeepSleep Retention 唤醒并调用对应初始化函数，最后进入
+ * 主循环。
  */
 _attribute_ram_code_ int main (void)    //must run in ramcode
 {

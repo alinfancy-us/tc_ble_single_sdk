@@ -21,6 +21,11 @@
  *          limitations under the License.
  *
  *******************************************************************************************************/
+/*
+ * 中文说明：
+ * 本文件声明了 BLE Remote 应用层的核心入口函数，包括正常上电/深度睡眠唤醒初始化、
+ * Flash 保护操作回调以及 BLE 主循环入口，供 main.c 调用。
+ */
 #ifndef APP_H_
 #define APP_H_
 
@@ -32,7 +37,8 @@
  * @param[in]	none
  * @return      none
  */
-
+/* 中文说明：MCU 上电或从深度睡眠（非 retention）唤醒后的用户初始化入口，完成 BLE 协议栈、GATT、
+ * ADV、电源管理等模块的初始化。 */
 void user_init_normal(void);
 
 /**
@@ -40,6 +46,7 @@ void user_init_normal(void);
  * @param[in]	none
  * @return      none
  */
+/* 中文说明：MCU 从深度睡眠 retention 模式唤醒后的初始化入口，恢复必要的协议栈状态与 UI 状态。 */
 void user_init_deepRetn(void);
 
 /**
@@ -55,14 +62,16 @@ void user_init_deepRetn(void);
  * 			   e.g. if we write flash sector from 0x10000 to 0x20000, actual operating flash address is 0x10000 ~ 0x1FFFF
  * 			   		but we use [0x10000, 0x20000):  op_addr_begin = 0x10000, op_addr_end = 0x20000
  * @return     none
- */
-void app_flash_protection_operation(u8 flash_op_evt, u32 op_addr_begin, u32 op_addr_end);
+ *//* 中文说明：Flash 保护操作回调，根据传入事件类型（应用初始化 / OTA 擦除旧固件开始与结束 /
+ * OTA 写入新固件开始与结束）执行对应的 Flash 加锁/解锁操作，避免运行期误擦写非法区域。 */void app_flash_protection_operation(u8 flash_op_evt, u32 op_addr_begin, u32 op_addr_end);
 
 /**
  * @brief     BLE main loop
  * @param[in]  none.
  * @return     none.
  */
+/* 中文说明：BLE 主循环声明，由 main.c 中 main() 的 while(1) 循环反复调用，驱动协议栈、音频、按键、
+ * LED 及低功耗流程。 */
 void main_loop(void);
 
 

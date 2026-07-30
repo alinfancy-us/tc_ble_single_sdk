@@ -21,6 +21,11 @@
  *          limitations under the License.
  *
  *******************************************************************************************************/
+/*
+ * 中文说明：
+ * 本文件定义了 BLE Remote 的 GATT 属性表句柄枚举（ATT_HANDLE），涵盖 GAP/GATT/设备信息/HID/
+ * 电池/OTA/音频等服务的各属性句柄顺序，并声明属性表初始化函数 my_att_init()。
+ */
 #ifndef APP_ATT_H_
 #define APP_ATT_H_
 
@@ -185,6 +190,7 @@ typedef enum
  * @param[in]  none
  * @return     none
  */
+/* 中文说明：初始化并注册 GATT 属性表，供协议栈在连接建立后处理属性读写请求。 */
 void my_att_init(void);
 
 

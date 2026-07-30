@@ -21,6 +21,11 @@
  *          limitations under the License.
  *
  *******************************************************************************************************/
+/*
+ * 中文说明：
+ * 本头文件声明了 ble_module 应用层对外接口，包括正常上电初始化、深度睡眠保留唤醒初始化、
+ * Flash 保护操作处理函数以及 BLE 主循环入口。
+ */
 #ifndef APP_H_
 #define APP_H_
 
@@ -31,6 +36,8 @@
  * @brief		user initialization when MCU power on or wake_up from deepSleep mode
  * @param[in]	none
  * @return      none
+ *
+ * 中文：上电/非保留模式唤醒后的用户初始化入口，实现见 app.c。
  */
 
 void user_init_normal(void);
@@ -39,6 +46,8 @@ void user_init_normal(void);
  * @brief		user initialization when MCU wake_up from deepSleep_retention mode
  * @param[in]	none
  * @return      none
+ *
+ * 中文：从深度睡眠保留模式唤醒后的用户初始化入口，实现见 app.c。
  */
 void user_init_deepRetn(void);
 
@@ -55,6 +64,8 @@ void user_init_deepRetn(void);
  * 			   e.g. if we write flash sector from 0x10000 to 0x20000, actual operating flash address is 0x10000 ~ 0x1FFFF
  * 			   		but we use [0x10000, 0x20000):  op_addr_begin = 0x10000, op_addr_end = 0x20000
  * @return     none
+ *
+ * 中文：应用层 Flash 加锁/解锁操作处理函数，实现见 app.c。
  */
 void app_flash_protection_operation(u8 flash_op_evt, u32 op_addr_begin, u32 op_addr_end);
 
@@ -62,6 +73,8 @@ void app_flash_protection_operation(u8 flash_op_evt, u32 op_addr_begin, u32 op_a
  * @brief     BLE main loop
  * @param[in]  none.
  * @return     none.
+ *
+ * 中文：BLE 主循环入口，实现见 app.c。
  */
 void main_loop(void);
 
