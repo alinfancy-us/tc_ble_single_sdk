@@ -85,7 +85,7 @@
 
 
 
-#define FEATURE_TEST_MODE								TEST_FEATURE_BACKUP
+#define FEATURE_TEST_MODE								TEST_POWER_ADV
 
 
 

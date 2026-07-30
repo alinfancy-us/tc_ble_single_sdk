@@ -26,6 +26,7 @@
 
 #include "../feature_config.h"
 
+/* 中文说明：本样例仅在 feature_config.h 中选中 FEATURE_TEST_MODE == TEST_POWER_ADV（ADV功耗测试）时才会参与编译 */
 #if (FEATURE_TEST_MODE == TEST_POWER_ADV)
 
 
@@ -33,14 +34,17 @@
  * @brief		user initialization when MCU power on or wake_up from deepSleep mode
  * @param[in]	none
  * @return      none
+ *
+ * 中文：芯片上电(冷启动)或从非retention的深度休眠唤醒时调用的用户初始化函数，实现在 app.c
  */
-
 void user_init_normal(void);
 
 /**
  * @brief		user initialization when MCU wake_up from deepSleep_retention mode
  * @param[in]	none
  * @return      none
+ *
+ * 中文：芯片从深度休眠保留(retention)模式唤醒时调用的用户初始化函数，实现在 app.c
  */
 void user_init_deepRetn(void);
 
@@ -49,6 +53,8 @@ void user_init_deepRetn(void);
  * @brief     BLE main loop
  * @param[in]  none.
  * @return     none.
+ *
+ * 中文：主循环函数，在 main.c 的 while(1) 中被不断调用，实现在 app.c
  */
 void main_loop(void);
 

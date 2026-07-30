@@ -34,6 +34,8 @@
 	#include "vendor/ble_hci/app_config.h"
 #elif (__PROJECT_8258_FEATURE_TEST__ || __PROJECT_8278_FEATURE_TEST__ || __PROJECT_TC321X_FEATURE_TEST__)
 	#include "vendor/ble_feature_test/app_config.h"
+#elif (__PROJECT_8258_HELLO_WORLD__)	//中文：TLSR8258 硬件串口打印 hello world Demo（仅 825x）
+	#include "vendor/hello_world/app_config.h"
 #elif(__PROJECT_8258_MASTER_KMA_DONGLE__ || __PROJECT_8278_MASTER_KMA_DONGLE__ )
 	#include "vendor/ble_master_kma_dongle/app_config.h"
 #elif(__PROJECT_8258_INTERNAL_TEST__ ||  __PROJECT_8278_INTERNAL_TEST__)
