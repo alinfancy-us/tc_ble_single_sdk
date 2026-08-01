@@ -19,6 +19,12 @@
  *              minicom -D /dev/cu.usbserial-xxxx -b 115200    # 或 picocom -b 115200 /dev/cu.usbserial-xxxx
  *          注：minicom 进去后需关闭硬件流控（Ctrl-A O -> Serial port setup -> F 改为 No）。
  *
+ *          Telink 调试器 + Web BDT 查看日志：
+ *              app_config.h 中 UART_PRINT_DEBUG_ENABLE=1，日志会额外镜像到 SDK 自带的
+ *              GPIO 模拟调试口（DEBUG_INFO_TX_PIN，本板默认 PB2，固定 1Mbps）。
+ *              SWS（模组 pin11）只管烧录/寄存器调试，不传日志；要在 Web BDT 的 Debug
+ *              面板看到打印，必须把调试器的 Log/RX 引脚额外接到 PB2。
+ *
  *******************************************************************************************************/
 #include "tl_common.h"
 #include "drivers.h"
@@ -37,10 +43,16 @@
  * @brief   发送一个字节
  *
  * 中文：uart_ndma_send_byte 内部已经做了 TX FIFO 满的等待（非 DMA 轮询发送方式）。
+ *       UART_PRINT_DEBUG_ENABLE 打开时，同步镜像一份到 SDK 的 GPIO 模拟调试口，
+ *       供 Telink 调试器 + Web BDT 的 Debug 面板查看（引脚见 app_config.h 顶部说明）。
  */
 static void uart_put_char(unsigned char c)
 {
 	uart_ndma_send_byte(c);
+
+#if (UART_PRINT_DEBUG_ENABLE)
+	tlkapi_printf(1, "%c", c);
+#endif
 }
 
 /**
@@ -124,6 +136,12 @@ _attribute_ram_code_ int main(void)
 	/* 7. 关闭 UART 的 DMA 和中断，使用最简单的非 DMA 轮询收发模式 */
 	uart_dma_enable(0, 0);
 	uart_irq_enable(0, 0);
+
+#if (UART_PRINT_DEBUG_ENABLE)
+	/* 中文：使能 SDK 自带的 GPIO 模拟调试口（固定引脚 DEBUG_INFO_TX_PIN，固定 1Mbps），
+	 *       uart_put_char() 会把同样的日志镜像过来，供 Web BDT 的 Debug 面板查看 */
+	tlkapi_debug_init();
+#endif
 
 	/* 8. 上电横幅，方便区分“刚复位”和“循环中的打印” */
 	uart_put_string("\r\n");

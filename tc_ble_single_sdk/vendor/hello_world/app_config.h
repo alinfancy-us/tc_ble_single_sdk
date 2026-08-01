@@ -26,14 +26,22 @@
 
 
 ///////////////////////// UART Configuration //////////////////////////////////////////////////
-/* 中文：使用 TLSR8258 的硬件 UART 外设（不是 SDK 默认的 GPIO 位翻转模拟串口）。
+/* 中文：主打印口用 TLSR8258 的硬件 UART 外设（不是 SDK 默认的 GPIO 位翻转模拟串口）。
  *
- * 为什么不用 SDK 自带的 tlkapi_printf？
+ * 为什么主打印口不用 SDK 自带的 tlkapi_printf？
  *   SDK 自带的调试打印是 GPIO 软件模拟串口，波特率被写死为 1000000
  *   （见 vendor/common/tlkapi_debug.h，改成别的值会直接触发 #error），
  *   很多 USB 转串口工具和 minicom 无法稳定收 1Mbps，
- *   所以这里改用硬件 UART，波特率可以自由设成通用的 115200。 */
-#define UART_PRINT_DEBUG_ENABLE                     0		//中文：关闭 GPIO 模拟串口打印，避免与硬件 UART 抢引脚
+ *   所以主打印口改用硬件 UART，波特率可以自由设成通用的 115200。
+ *
+ * 为什么又把它打开：
+ *   Telink 调试器的 SWS 单线调试/烧录和 Web BDT 的 Debug 面板是两根独立的线，
+ *   Debug 面板只解析 tlkapi_printf 这一路固定 1Mbps 的 GPIO 协议，看不到上面的硬件 UART。
+ *   main.c 里 uart_put_char() 打开时会把同一份日志镜像一份过去，
+ *   只需把调试器的 Log/RX 线额外接到 DEBUG_INFO_TX_PIN（本板默认 PB2，与 PB1/PB7 不冲突），
+ *   就能在 Web BDT 的 Debug 面板看到和硬件 UART 一样的输出。
+ *   不需要 BDT 查看日志时，改回 0 即可省掉这部分体积和逐字节镜像开销。 */
+#define UART_PRINT_DEBUG_ENABLE                     1
 
 #define DEMO_UART_BAUDRATE                          115200	//中文：波特率，可按需改成 9600 / 19200 / 460800 等
 
