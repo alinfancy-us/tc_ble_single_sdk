@@ -1,3 +1,0 @@
-[submodule "tc_ble_single_sdk/private"]
-	path = tc_ble_single_sdk/private
-	url = git@github.com:alinfancy-us/bth_soil_sensor.git
